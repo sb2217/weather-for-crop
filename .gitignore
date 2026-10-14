@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*$py.class
+weather_cache.db
+.venv/
+env/
+.DS_Store

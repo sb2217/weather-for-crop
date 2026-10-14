@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriWeather – Live Weather & Crop Advisory</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #f59e0b;
+            --danger: #ef4444;
+            --surface: rgba(255, 255, 255, 0.82);
+            --surface-card: rgba(255, 255, 255, 0.72);
+            --surface-border: rgba(255, 255, 255, 0.4);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --glass-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
+            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --blur: 16px;
+        }
+
+        body.dark-theme {
+            --surface: rgba(15, 23, 42, 0.85);
+            --surface-card: rgba(30, 41, 59, 0.78);
+            --surface-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-shadow: 0 16px 38px rgba(0, 0, 0, 0.45);
+            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+            background: #0f172a url('./static/crop_weather_bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            transition: background-image 0.8s ease-in-out, color 0.3s ease;
+            position: relative;
+            padding: 24px 16px;
+            overflow-x: hidden;
+        }
+
+        /* Subtle dark overlay for readability */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.35) 0%, rgba(0, 0, 0, 0.5) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Navigation */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 16px 24px;
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 24px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #10b981, #047857);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+        }
+
+        .logo-text h1 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .logo-text span {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-toggle:hover {
+            transform: translateY(-1px);
+            background: var(--surface);
+        }
+
+        /* Search & Presets */
+        .search-section {
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 20px 24px;
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 24px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            position: relative;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-input-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            font-size: 15px;
+            font-family: inherit;
+            border-radius: 14px;
+            border: 1px solid var(--surface-border);
+            background: var(--surface-card);
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-bar input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0 24px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+        }
+
+        .btn-gps {
+            background: var(--surface-card);
+            color: var(--text-main);
+            border: 1px solid var(--surface-border);
+            padding: 0 18px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-gps:hover {
+            background: var(--surface);
+            color: var(--primary);
+        }
+
+        .quick-presets {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick-presets span {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preset-chip {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-chip:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Weather Status Banner & Alerts */
+        .alerts-wrapper {
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .alert-card {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border-radius: 16px;
+            padding: 14px 20px;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .alert-card.warning {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #d97706;
+        }
+
+        body.dark-theme .alert-card.warning {
+            color: #fbbf24;
+        }
+
+        /* Weather Hero Dashboard */
+        .weather-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .weather-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .weather-hero {
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .location-info h2 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .location-info .timestamp {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .hero-temp-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 24px 0 16px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .hero-temp {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -2px;
+            color: var(--text-main);
+        }
+
+        .hero-condition {
+            text-align: right;
+        }
+
+        .condition-icon {
+            font-size: 54px;
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        .condition-text {
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .weather-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 14px;
+        }
+
+        .metric-card {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .metric-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .icon-humidity { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .icon-temp { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .icon-wind { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .icon-pressure { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+
+        .metric-details .label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-details .value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* Agricultural Summary Card */
+        .agri-summary {
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .agri-summary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .agri-summary-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .comfort-score-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        .field-indicators {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .indicator-item {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+
+        .indicator-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .indicator-bar-bg {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body.dark-theme .indicator-bar-bg {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .indicator-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.6s ease;
+        }
+
+        .bar-green { background: linear-gradient(90deg, #34d399, #10b981); }
+        .bar-blue { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+        .bar-amber { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+
+        .agri-insight {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            background: rgba(16, 185, 129, 0.08);
+            border-left: 3px solid var(--primary);
+            padding: 12px 14px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 14px;
+        }
+
+        /* Crop Recommendation Section */
+        .crop-section {
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 24px;
+        }
+
+        .crop-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .crop-section-header h2 {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .crops-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 20px;
+        }
+
+        .crop-card {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .crop-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+
+        .crop-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .crop-title-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .crop-emoji {
+            font-size: 32px;
+            line-height: 1;
+        }
+
+        .crop-name {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .crop-season {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .status-optimal {
+            background: rgba(16, 185, 129, 0.2);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        body.dark-theme .status-optimal {
+            color: #34d399;
+        }
+
+        .status-moderate {
+            background: rgba(245, 158, 11, 0.2);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        body.dark-theme .status-moderate {
+            color: #fbbf24;
+        }
+
+        .status-poor {
+            background: rgba(239, 68, 68, 0.15);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        body.dark-theme .status-poor {
+            color: #f87171;
+        }
+
+        .crop-conditions {
+            margin: 12px 0;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .condition-row {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+        }
+
+        .condition-row strong {
+            color: var(--text-main);
+        }
+
+        .crop-advice {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.45;
+            padding-top: 10px;
+            border-top: 1px solid var(--surface-border);
+            margin-top: 4px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 18px 24px;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            color: white;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 600px) {
+            .search-bar {
+                flex-direction: column;
+            }
+            .hero-temp {
+                font-size: 48px;
+            }
+            .crop-section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fa-solid fa-wheat-awn"></i>
+            </div>
+            <div class="logo-text">
+                <h1>AgriWeather</h1>
+                <span>Live Weather & Smart Crop Advisory</span>
+            </div>
+        </div>
+
+        <div class="header-controls">
+            <!-- Units Toggle -->
+            <button class="btn-toggle" id="unitToggle" onclick="toggleTemperatureUnit()" title="Toggle Celsius / Fahrenheit">
+                <i class="fa-solid fa-temperature-half"></i>
+                <span id="unitText">°C / Metric</span>
+            </button>
+
+            <!-- Background Theme Switcher -->
+            <button class="btn-toggle" id="bgToggle" onclick="cycleBackground()" title="Switch Custom Background">
+                <i class="fa-solid fa-image"></i>
+                <span id="bgText">Custom Farm BG</span>
+            </button>
+
+            <!-- Night / Dark Mode -->
+            <button class="btn-toggle" id="themeToggle" onclick="toggleDarkMode()" title="Toggle Dark Glass Mode">
+                <i class="fa-solid fa-moon"></i>
+                <span id="themeText">Dark Mode</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Search & Location Bar -->
+    <section class="search-section">
+        <form class="search-bar" onsubmit="handleSearch(event)">
+            <div class="search-input-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="cityInput" placeholder="Enter city name (e.g., Delhi, Punjab, California, London, Tokyo)..." autocomplete="off" required>
+            </div>
+            <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-cloud-sun"></i> Check Weather
+            </button>
+            <button type="button" class="btn-gps" onclick="fetchByCurrentLocation()" title="Detect current GPS location">
+                <i class="fa-solid fa-location-crosshairs"></i> My Location
+            </button>
+        </form>
+
+        <div class="quick-presets">
+            <span>Popular Regions:</span>
+            <div class="preset-chip" onclick="searchCity('Delhi')">Delhi</div>
+            <div class="preset-chip" onclick="searchCity('Punjab')">Punjab</div>
+            <div class="preset-chip" onclick="searchCity('Bengaluru')">Bengaluru</div>
+            <div class="preset-chip" onclick="searchCity('California')">California</div>
+            <div class="preset-chip" onclick="searchCity('London')">London</div>
+            <div class="preset-chip" onclick="searchCity('Sao Paulo')">São Paulo</div>
+            <div class="preset-chip" onclick="searchCity('Nairobi')">Nairobi</div>
+            <div class="preset-chip" onclick="searchCity('Tokyo')">Tokyo</div>
+        </div>
+    </section>
+
+    <!-- Alerts Container -->
+    <div class="alerts-wrapper" id="alertsContainer"></div>
+
+    <!-- Weather Hero Dashboard -->
+    <section class="weather-grid">
+        <!-- Weather Hero Card -->
+        <div class="weather-hero">
+            <div>
+                <div class="location-info">
+                    <h2 id="cityName">
+                        <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i>
+                        <span id="displayCity">Detecting Weather...</span>
+                    </h2>
+                    <div class="timestamp" id="lastUpdated">Updated just now • Live data feed</div>
+                </div>
+
+                <div class="hero-temp-wrapper">
+                    <div>
+                        <div class="hero-temp" id="tempDisplay">--°C</div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                            Feels like: <strong id="feelsLikeDisplay">--°C</strong>
+                        </div>
+                    </div>
+                    <div class="hero-condition">
+                        <div class="condition-icon" id="weatherIcon">🌾</div>
+                        <div class="condition-text" id="weatherDesc">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="weather-metrics">
+                <div class="metric-card">
+                    <div class="metric-icon icon-humidity">
+                        <i class="fa-solid fa-droplet"></i>
+                    </div>
+                    <div class="metric-details">
+                        <div class="label">Humidity</div>
+                        <div class="value" id="humidityDisplay">--%</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon icon-wind">
+                        <i class="fa-solid fa-wind"></i>
+                    </div>
+                    <div class="metric-details">
+                        <div class="label">Wind Speed</div>
+                        <div class="value" id="windDisplay">-- km/h</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon icon-temp">
+                        <i class="fa-solid fa-temperature-arrow-up"></i>
+                    </div>
+                    <div class="metric-details">
+                        <div class="label">High / Low</div>
+                        <div class="value" id="minMaxDisplay">-- / --</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon icon-pressure">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </div>
+                    <div class="metric-details">
+                        <div class="label">Pressure</div>
+                        <div class="value" id="pressureDisplay">-- hPa</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agricultural Overview & Comfort -->
+        <div class="agri-summary">
+            <div>
+                <div class="agri-summary-header">
+                    <h3><i class="fa-solid fa-seedling" style="color: var(--primary);"></i> Agricultural Climate Index</h3>
+                    <div class="comfort-score-badge" id="agriRatingBadge">Evaluating...</div>
+                </div>
+
+                <div class="field-indicators">
+                    <div class="indicator-item">
+                        <div class="indicator-label">
+                            <span>Moisture & Humidity Suitability</span>
+                            <span id="humidityBarText">--</span>
+                        </div>
+                        <div class="indicator-bar-bg">
+                            <div class="indicator-bar-fill bar-blue" id="humidityBar" style="width: 50%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="indicator-item">
+                        <div class="indicator-label">
+                            <span>Thermal Comfort for Crops</span>
+                            <span id="thermalBarText">--</span>
+                        </div>
+                        <div class="indicator-bar-bg">
+                            <div class="indicator-bar-fill bar-green" id="thermalBar" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agri-insight" id="agriSummaryText">
+                Fetching regional agro-meteorological parameters to generate crop planting feasibility and irrigation schedules...
+            </div>
+        </div>
+    </section>
+
+    <!-- Crop Recommendations Section -->
+    <section class="crop-section">
+        <div class="crop-section-header">
+            <div>
+                <h2><i class="fa-solid fa-tractor" style="color: var(--primary);"></i> Crop Suitability Advisory</h2>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                    Real-time agronomic recommendations mapped against current temperature and atmospheric moisture
+                </div>
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-btn active" onclick="filterCrops('all', this)">All Crops</button>
+                <button class="filter-btn" onclick="filterCrops('optimal', this)">Recommended (Optimal)</button>
+                <button class="filter-btn" onclick="filterCrops('rabi', this)">Rabi / Winter</button>
+                <button class="filter-btn" onclick="filterCrops('kharif', this)">Kharif / Monsoon</button>
+                <button class="filter-btn" onclick="filterCrops('cash', this)">Cash Crops</button>
+            </div>
+        </div>
+
+        <div class="crops-grid" id="cropsGrid">
+            <!-- Dynamic Crop Cards injected by JavaScript -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div>
+            <strong>AgriWeather &copy; 2026</strong> • Open Agricultural Weather Intelligence
+        </div>
+        <div>
+            Repository: <a href="https://github.com/sb2217/weather-for-crop" target="_blank"><i class="fa-brands fa-github"></i> sb2217/weather-for-crop</a>
+        </div>
+    </footer>
+
+</div>
+
+<!-- Loading Spinner Overlay -->
+<div class="loader-overlay" id="loaderOverlay">
+    <div class="spinner"></div>
+    <div style="font-weight: 600; font-size: 15px;">Fetching Live Meteorological Data...</div>
+</div>
+
+<script>
+    /* =====================================================================
+       CROP DATABASE & AGRONOMIC RULES
+       ===================================================================== */
+    const CROPS = [
+        {
+            id: 'wheat',
+            name: 'Wheat',
+            emoji: '🌾',
+            type: 'rabi',
+            minTemp: 10,
+            maxTemp: 25,
+            minHumidity: 45,
+            maxHumidity: 70,
+            notes: 'Requires cool weather during vegetative growth and warm, dry sunshine during grain ripening.'
+        },
+        {
+            id: 'rice',
+            name: 'Rice (Paddy)',
+            emoji: '🍚',
+            type: 'kharif',
+            minTemp: 20,
+            maxTemp: 36,
+            minHumidity: 65,
+            maxHumidity: 95,
+            notes: 'Thrives in hot, humid climates with abundant water supply or sustained irrigation.'
+        },
+        {
+            id: 'maize',
+            name: 'Maize (Corn)',
+            emoji: '🌽',
+            type: 'kharif',
+            minTemp: 18,
+            maxTemp: 32,
+            minHumidity: 45,
+            maxHumidity: 75,
+            notes: 'Highly adaptable moderate-climate crop. Requires warm soils and good drainage.'
+        },
+        {
+            id: 'cotton',
+            name: 'Cotton',
+            emoji: '⚪',
+            type: 'cash',
+            minTemp: 21,
+            maxTemp: 35,
+            minHumidity: 40,
+            maxHumidity: 65,
+            notes: 'Warm temperature crop. Requires plenty of sunshine and dry weather during boll opening.'
+        },
+        {
+            id: 'sugarcane',
+            name: 'Sugarcane',
+            emoji: '🎋',
+            type: 'cash',
+            minTemp: 20,
+            maxTemp: 35,
+            minHumidity: 60,
+            maxHumidity: 88,
+            notes: 'Tropical long-duration crop. Heavy feeder that thrives in warm, humid tropical conditions.'
+        },
+        {
+            id: 'pulses',
+            name: 'Pulses & Gram',
+            emoji: '🫘',
+            type: 'rabi',
+            minTemp: 14,
+            maxTemp: 28,
+            minHumidity: 35,
+            maxHumidity: 65,
+            notes: 'Drought-tolerant nitrogen fixer. Sensitive to waterlogging; prefers moderate temperatures.'
+        },
+        {
+            id: 'mustard',
+            name: 'Mustard',
+            emoji: '🌻',
+            type: 'rabi',
+            minTemp: 10,
+            maxTemp: 25,
+            minHumidity: 40,
+            maxHumidity: 65,
+            notes: 'Cool season oilseed crop. Thrives in dry and cold winter weather with clear skies.'
+        },
+        {
+            id: 'potato',
+            name: 'Potato',
+            emoji: '🥔',
+            type: 'rabi',
+            minTemp: 14,
+            maxTemp: 24,
+            minHumidity: 55,
+            maxHumidity: 85,
+            notes: 'Tuber formation is severely hampered if night temperatures exceed 22°C.'
+        },
+        {
+            id: 'soybean',
+            name: 'Soybean',
+            emoji: '🫛',
+            type: 'kharif',
+            minTemp: 20,
+            maxTemp: 32,
+            minHumidity: 50,
+            maxHumidity: 75,
+            notes: 'Warm season legume. Ideal for crop rotation; requires well-drained fertile loam.'
+        }
+    ];
+
+    /* =====================================================================
+       APP STATE
+       ===================================================================== */
+    let currentWeatherData = null;
+    let isFahrenheit = false;
+    let currentFilter = 'all';
+    let currentBgMode = 'custom'; // 'custom', 'dynamic', 'dark'
+    const OPENWEATHER_API_KEY = localStorage.getItem('OWM_API_KEY') || "";
+
+    /* =====================================================================
+       INITIALIZATION
+       ===================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+        // Automatic night mode detection
+        const hour = new Date().getHours();
+        if (hour >= 19 || hour <= 5) {
+            document.body.classList.add('dark-theme');
+            document.getElementById('themeText').innerText = 'Light Mode';
+        }
+
+        // Try geolocation or load default city
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                pos => fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude),
+                err => {
+                    console.log('Geolocation denied or unavailable, loading default city:', err);
+                    searchCity('Delhi');
+                },
+                { timeout: 7000 }
+            );
+        } else {
+            searchCity('Delhi');
+        }
+    });
+
+    /* =====================================================================
+       SEARCH & WEATHER FETCHING LOGIC
+       ===================================================================== */
+    function handleSearch(e) {
+        e.preventDefault();
+        const city = document.getElementById('cityInput').value.trim();
+        if (city) {
+            searchCity(city);
+        }
+    }
+
+    function searchCity(city) {
+        showLoader(true);
+        // Primary: Open-Meteo Geocoding (no API key needed, zero CORS restriction, global)
+        const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+
+        fetch(geocodeUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (data.results && data.results.length > 0) {
+                    const loc = data.results[0];
+                    const displayName = `${loc.name}${loc.admin1 ? ', ' + loc.admin1 : ''}, ${loc.country || ''}`;
+                    fetchWeatherByCoords(loc.latitude, loc.longitude, displayName);
+                } else if (OPENWEATHER_API_KEY) {
+                    // Fallback to OpenWeatherMap API if custom key exists
+                    fetchOpenWeatherMap(city);
+                } else {
+                    showLoader(false);
+                    alert(`Could not find location for "${city}". Please check the spelling.`);
+                }
+            })
+            .catch(err => {
+                if (OPENWEATHER_API_KEY) {
+                    fetchOpenWeatherMap(city);
+                } else {
+                    showLoader(false);
+                    alert(`Could not fetch weather data for "${city}". Please try again.`);
+                }
+            });
+    }
+
+    function fetchOpenWeatherMap(city) {
+        if (!OPENWEATHER_API_KEY) return;
+        const owmUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OPENWEATHER_API_KEY}&units=metric`;
+        fetch(owmUrl)
+            .then(res => {
+                if (!res.ok) throw new Error('City not found or API limit reached');
+                return res.json();
+            })
+            .then(data => {
+                processOwmData(data);
+                showLoader(false);
+            })
+            .catch(err => {
+                showLoader(false);
+                alert(`Could not find weather data for "${city}". Please check spelling.`);
+            });
+    }
+
+    function fetchByCurrentLocation() {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser.');
+            return;
+        }
+        showLoader(true);
+        navigator.geolocation.getCurrentPosition(
+            pos => fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude),
+            err => {
+                showLoader(false);
+                alert('Location permission denied. Please enter a city manually.');
+            },
+            { timeout: 10000 }
+        );
+    }
+
+    function fetchWeatherByCoords(lat, lon, customName = null) {
+        showLoader(true);
+        // Open-Meteo Forecast API: Fast, reliable, 100% free
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+
+        fetch(weatherUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (customName) {
+                    processOpenMeteoData(data, customName);
+                    showLoader(false);
+                } else {
+                    // Reverse geocode to find friendly name
+                    fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${lat.toFixed(2)},${lon.toFixed(2)}&count=1`)
+                        .catch(() => null)
+                        .then(() => {
+                            const name = customName || `Location (${lat.toFixed(2)}°, ${lon.toFixed(2)}°)`;
+                            processOpenMeteoData(data, name);
+                            showLoader(false);
+                        });
+                }
+            })
+            .catch(err => {
+                console.error('Weather fetch error:', err);
+                showLoader(false);
+                alert('Failed to fetch live weather data. Please try again.');
+            });
+    }
+
+    /* =====================================================================
+       DATA PROCESSING & UI UPDATES
+       ===================================================================== */
+    function processOpenMeteoData(data, locationName) {
+        const cur = data.current;
+        const daily = data.daily || {};
+        const weatherInfo = mapWmoCode(cur.weather_code);
+
+        currentWeatherData = {
+            city: locationName,
+            temp: cur.temperature_2m,
+            feelsLike: cur.apparent_temperature,
+            humidity: cur.relative_humidity_2m,
+            windSpeed: cur.wind_speed_10m,
+            pressure: Math.round(cur.surface_pressure || 1013),
+            minTemp: daily.temperature_2m_min ? daily.temperature_2m_min[0] : Math.round(cur.temperature_2m - 4),
+            maxTemp: daily.temperature_2m_max ? daily.temperature_2m_max[0] : Math.round(cur.temperature_2m + 5),
+            condition: weatherInfo.label,
+            icon: weatherInfo.icon,
+            conditionCategory: weatherInfo.category
+        };
+
+        renderWeather();
+    }
+
+    function processOwmData(data) {
+        const cond = data.weather[0];
+        currentWeatherData = {
+            city: `${data.name}, ${data.sys ? data.sys.country : ''}`,
+            temp: data.main.temp,
+            feelsLike: data.main.feels_like,
+            humidity: data.main.humidity,
+            windSpeed: Math.round(data.wind.speed * 3.6), // convert m/s to km/h
+            pressure: data.main.pressure,
+            minTemp: data.main.temp_min,
+            maxTemp: data.main.temp_max,
+            condition: cond.description,
+            icon: mapOwmIcon(cond.icon),
+            conditionCategory: mapOwmCategory(cond.main)
+        };
+
+        renderWeather();
+    }
+
+    function renderWeather() {
+        if (!currentWeatherData) return;
+        const d = currentWeatherData;
+
+        document.getElementById('displayCity').innerText = d.city;
+        document.getElementById('lastUpdated').innerText = `Updated at ${new Date().toLocaleTimeString()} • Live data feed`;
+
+        const displayTemp = isFahrenheit ? (d.temp * 9/5 + 32).toFixed(1) + '°F' : d.temp.toFixed(1) + '°C';
+        const displayFeels = isFahrenheit ? (d.feelsLike * 9/5 + 32).toFixed(1) + '°F' : d.feelsLike.toFixed(1) + '°C';
+        const displayMin = isFahrenheit ? (d.minTemp * 9/5 + 32).toFixed(0) : d.minTemp.toFixed(0);
+        const displayMax = isFahrenheit ? (d.maxTemp * 9/5 + 32).toFixed(0) : d.maxTemp.toFixed(0);
+        const unit = isFahrenheit ? '°F' : '°C';
+
+        document.getElementById('tempDisplay').innerText = displayTemp;
+        document.getElementById('feelsLikeDisplay').innerText = displayFeels;
+        document.getElementById('minMaxDisplay').innerText = `${displayMin}${unit} / ${displayMax}${unit}`;
+        document.getElementById('humidityDisplay').innerText = `${d.humidity}%`;
+        document.getElementById('windDisplay').innerText = `${d.windSpeed} km/h`;
+        document.getElementById('pressureDisplay').innerText = `${d.pressure} hPa`;
+
+        document.getElementById('weatherIcon').innerText = d.icon;
+        document.getElementById('weatherDesc').innerText = d.condition;
+
+        // Render Alerts
+        renderAlerts(d.temp, d.humidity, d.windSpeed);
+
+        // Render Agricultural Climate Index
+        renderAgriIndex(d.temp, d.humidity);
+
+        // Render Crop Advisory
+        renderCrops(d.temp, d.humidity);
+
+        // Update Dynamic Background if active
+        if (currentBgMode === 'dynamic') {
+            applyDynamicBackground(d.conditionCategory);
+        }
+    }
+
+    /* =====================================================================
+       ALERTS & AGRI CLIMATE INDEX
+       ===================================================================== */
+    function renderAlerts(temp, humidity, wind) {
+        const container = document.getElementById('alertsContainer');
+        const alerts = [];
+
+        if (temp >= 40) {
+            alerts.push({
+                type: 'danger',
+                icon: 'fa-fire',
+                title: `🔥 Extreme Heatwave Alert (${temp.toFixed(1)}°C)`,
+                desc: 'Severe heat stress. High evapotranspiration rate. Irrigate standing crops in early morning or late dusk to prevent wilting.'
+            });
+        } else if (temp <= 4) {
+            alerts.push({
+                type: 'danger',
+                icon: 'fa-snowflake',
+                title: `❄ Ground Frost / Cold Stress Warning (${temp.toFixed(1)}°C)`,
+                desc: 'Risk of cell freeze in sensitive crops (potato, mustard, vegetables). Provide light evening irrigation or straw mulching.'
+            });
+        }
+
+        if (humidity >= 85 && temp >= 22) {
+            alerts.push({
+                type: 'warning',
+                icon: 'fa-triangle-exclamation',
+                title: `💧 High Humidity & Fungal Disease Risk (${humidity}%)`,
+                desc: 'Warm and saturated air creates prime breeding conditions for blight, rust, downy mildew, and aphid infestations. Monitor foliage closely.'
+            });
+        }
+
+        if (wind >= 32) {
+            alerts.push({
+                type: 'warning',
+                icon: 'fa-wind',
+                title: `💨 Strong Wind Advisory (${wind} km/h)`,
+                desc: 'Strong winds can cause lodging (stalk breakage) in tall crops such as sugarcane and maize. Postpone chemical foliar spraying.'
+            });
+        }
+
+        if (alerts.length > 0) {
+            container.style.display = 'block';
+            container.innerHTML = alerts.map(a => `
+                <div class="alert-card ${a.type === 'warning' ? 'warning' : ''}">
+                    <i class="fa-solid ${a.icon}" style="font-size: 20px;"></i>
+                    <div>
+                        <div style="font-size: 14px; font-weight: 700;">${a.title}</div>
+                        <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">${a.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
+    }
+
+    function renderAgriIndex(temp, humidity) {
+        const humidityBar = document.getElementById('humidityBar');
+        const humidityText = document.getElementById('humidityBarText');
+        const thermalBar = document.getElementById('thermalBar');
+        const thermalText = document.getElementById('thermalBarText');
+        const ratingBadge = document.getElementById('agriRatingBadge');
+        const summaryText = document.getElementById('agriSummaryText');
+
+        // Humidity bar
+        humidityBar.style.width = `${Math.min(100, Math.max(10, humidity))}%`;
+        if (humidity >= 50 && humidity <= 75) {
+            humidityText.innerText = `${humidity}% (Optimal for most crops)`;
+            humidityBar.className = 'indicator-bar-fill bar-green';
+        } else if (humidity < 50) {
+            humidityText.innerText = `${humidity}% (Dry – Irrigation required)`;
+            humidityBar.className = 'indicator-bar-fill bar-amber';
+        } else {
+            humidityText.innerText = `${humidity}% (Saturated – Fungal risk)`;
+            humidityBar.className = 'indicator-bar-fill bar-blue';
+        }
+
+        // Thermal comfort
+        let thermalScore = 50;
+        if (temp >= 18 && temp <= 28) {
+            thermalScore = 95;
+            thermalText.innerText = `${temp.toFixed(1)}°C (Ideal vegetative window)`;
+            thermalBar.className = 'indicator-bar-fill bar-green';
+            ratingBadge.innerText = '🟢 Favorable Growing Conditions';
+            ratingBadge.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            summaryText.innerText = `Current temperature (${temp.toFixed(1)}°C) and humidity (${humidity}%) present a robust, productive physiological window for warm-season cereals, legumes, and cash crops.`;
+        } else if (temp >= 10 && temp < 18) {
+            thermalScore = 75;
+            thermalText.innerText = `${temp.toFixed(1)}°C (Cool Rabi season window)`;
+            thermalBar.className = 'indicator-bar-fill bar-blue';
+            ratingBadge.innerText = '🌱 Excellent for Rabi Crops';
+            ratingBadge.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+            summaryText.innerText = `Cool ambient temperature (${temp.toFixed(1)}°C) supports winter wheat, mustard, pulses, and potato tuberization with reduced thermal stress.`;
+        } else if (temp > 28 && temp <= 36) {
+            thermalScore = 70;
+            thermalText.innerText = `${temp.toFixed(1)}°C (Warm summer / tropical window)`;
+            thermalBar.className = 'indicator-bar-fill bar-amber';
+            ratingBadge.innerText = '🌾 Moderate / High Evaporation';
+            ratingBadge.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            summaryText.innerText = `Elevated heat requires scheduled watering. Ideal for paddy (with standing water), cotton, and tropical sugarcane.`;
+        } else {
+            thermalScore = 30;
+            thermalText.innerText = `${temp.toFixed(1)}°C (Thermal Stress Zone)`;
+            thermalBar.className = 'indicator-bar-fill bar-amber';
+            ratingBadge.innerText = '⚠ Severe Thermal Stress';
+            ratingBadge.style.background = 'linear-gradient(135deg, #ef4444, #b91c1c)';
+            summaryText.innerText = `Extreme temperatures (${temp.toFixed(1)}°C) retard plant cell elongation. Protect seedlings and preserve soil moisture through mulch.`;
+        }
+        thermalBar.style.width = `${thermalScore}%`;
+    }
+
+    /* =====================================================================
+       CROP EVALUATION ENGINE
+       ===================================================================== */
+    function renderCrops(temp, humidity) {
+        const grid = document.getElementById('cropsGrid');
+        grid.innerHTML = '';
+
+        CROPS.forEach(crop => {
+            // Suitability logic
+            const tempOk = (temp >= crop.minTemp && temp <= crop.maxTemp);
+            const humidityOk = (humidity >= crop.minHumidity && humidity <= crop.maxHumidity);
+
+            let status = '';
+            let statusClass = '';
+            let statusText = '';
+            let advice = '';
+
+            if (tempOk && humidityOk) {
+                status = 'optimal';
+                statusClass = 'status-optimal';
+                statusText = 'Optimal Climate';
+                advice = `🟢 Prime growing conditions: Current temperature (${temp.toFixed(1)}°C) and moisture (${humidity}%) closely match physiological requirements. ${crop.notes}`;
+            } else if (tempOk) {
+                status = 'moderate';
+                statusClass = 'status-moderate';
+                statusText = 'Moderate (Moisture Gap)';
+                if (humidity < crop.minHumidity) {
+                    advice = `🟡 Temperature is suitable (${temp.toFixed(1)}°C), but atmospheric humidity is lower than ideal. Provide supplemental drip/furrow irrigation.`;
+                } else {
+                    advice = `🟡 Temperature is suitable (${temp.toFixed(1)}°C), but high humidity (${humidity}%) requires proactive disease and rust monitoring.`;
+                }
+            } else {
+                status = 'poor';
+                statusClass = 'status-poor';
+                statusText = 'Not Recommended';
+                if (temp < crop.minTemp) {
+                    advice = `🔴 Too cold for ${crop.name} (requires at least ${crop.minTemp}°C, currently ${temp.toFixed(1)}°C). Risk of stunted vegetative growth.`;
+                } else {
+                    advice = `🔴 Too warm for ${crop.name} (tolerates up to ${crop.maxTemp}°C, currently ${temp.toFixed(1)}°C). High risk of flower drop and thermal distress.`;
+                }
+            }
+
+            const card = document.createElement('div');
+            card.className = `crop-card`;
+            card.dataset.status = status;
+            card.dataset.type = crop.type;
+
+            card.innerHTML = `
+                <div>
+                    <div class="crop-card-top">
+                        <div class="crop-title-box">
+                            <span class="crop-emoji">${crop.emoji}</span>
+                            <div>
+                                <div class="crop-name">${crop.name}</div>
+                                <div class="crop-season">${crop.type.toUpperCase()} SEASON</div>
+                            </div>
+                        </div>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+
+                    <div class="crop-conditions">
+                        <div class="condition-row">
+                            <span>Ideal Temp Range:</span>
+                            <strong>${crop.minTemp}°C – ${crop.maxTemp}°C</strong>
+                        </div>
+                        <div class="condition-row">
+                            <span>Ideal Humidity:</span>
+                            <strong>${crop.minHumidity}% – ${crop.maxHumidity}%</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crop-advice">
+                    ${advice}
+                </div>
+            `;
+
+            grid.appendChild(card);
+        });
+
+        applyFilterToCards();
+    }
+
+    /* =====================================================================
+       FILTERING & CONTROLS
+       ===================================================================== */
+    function filterCrops(type, btn) {
+        currentFilter = type;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        applyFilterToCards();
+    }
+
+    function applyFilterToCards() {
+        const cards = document.querySelectorAll('.crop-card');
+        cards.forEach(card => {
+            const cardStatus = card.dataset.status;
+            const cardType = card.dataset.type;
+
+            if (currentFilter === 'all') {
+                card.style.display = 'flex';
+            } else if (currentFilter === 'optimal') {
+                card.style.display = (cardStatus === 'optimal') ? 'flex' : 'none';
+            } else if (currentFilter === cardType) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function toggleTemperatureUnit() {
+        isFahrenheit = !isFahrenheit;
+        document.getElementById('unitText').innerText = isFahrenheit ? '°F / Imperial' : '°C / Metric';
+        if (currentWeatherData) renderWeather();
+    }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-theme');
+        const isDark = document.body.classList.contains('dark-theme');
+        document.getElementById('themeText').innerText = isDark ? 'Light Mode' : 'Dark Mode';
+    }
+
+    function cycleBackground() {
+        const modes = ['custom', 'dynamic', 'dark'];
+        const nextIndex = (modes.indexOf(currentBgMode) + 1) % modes.length;
+        currentBgMode = modes[nextIndex];
+
+        if (currentBgMode === 'custom') {
+            document.body.style.backgroundImage = "url('./static/crop_weather_bg.jpg')";
+            document.getElementById('bgText').innerText = 'Custom Farm BG';
+        } else if (currentBgMode === 'dynamic') {
+            document.getElementById('bgText').innerText = 'Dynamic Weather Sky';
+            if (currentWeatherData) applyDynamicBackground(currentWeatherData.conditionCategory);
+        } else {
+            document.body.style.backgroundImage = "linear-gradient(135deg, #09131d 0%, #152331 100%)";
+            document.getElementById('bgText').innerText = 'Clean Deep Blue';
+        }
+    }
+
+    function applyDynamicBackground(category) {
+        let url = './static/crop_weather_bg.jpg';
+        switch (category) {
+            case 'rain':
+                url = 'https://images.unsplash.com/photo-1519692933481-e162a57d6721?auto=format&fit=crop&w=1600&q=80';
+                break;
+            case 'clouds':
+                url = 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=1600&q=80';
+                break;
+            case 'clear':
+                url = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80';
+                break;
+            case 'mist':
+                url = 'https://images.unsplash.com/photo-1487621167305-5d248087c724?auto=format&fit=crop&w=1600&q=80';
+                break;
+            default:
+                url = './static/crop_weather_bg.jpg';
+        }
+        document.body.style.backgroundImage = `url('${url}')`;
+    }
+
+    /* =====================================================================
+       WEATHER CODE MAPPINGS
+       ===================================================================== */
+    function mapWmoCode(code) {
+        if (code === 0) return { label: 'Clear Sky', icon: '☀️', category: 'clear' };
+        if (code === 1 || code === 2) return { label: 'Partly Cloudy', icon: '🌤️', category: 'clouds' };
+        if (code === 3) return { label: 'Overcast', icon: '☁️', category: 'clouds' };
+        if (code >= 45 && code <= 48) return { label: 'Fog / Mist', icon: '🌫️', category: 'mist' };
+        if (code >= 51 && code <= 55) return { label: 'Light Drizzle', icon: '🌦️', category: 'rain' };
+        if (code >= 61 && code <= 65) return { label: 'Rain Showers', icon: '🌧️', category: 'rain' };
+        if (code >= 71 && code <= 77) return { label: 'Snow Flurries', icon: '❄️', category: 'snow' };
+        if (code >= 80 && code <= 82) return { label: 'Heavy Downpour', icon: '⛈️', category: 'rain' };
+        if (code >= 95 && code <= 99) return { label: 'Thunderstorm', icon: '🌩️', category: 'rain' };
+        return { label: 'Scattered Clouds', icon: '⛅', category: 'clouds' };
+    }
+
+    function mapOwmIcon(iconCode) {
+        if (!iconCode) return '🌤️';
+        if (iconCode.startsWith('01')) return '☀️';
+        if (iconCode.startsWith('02')) return '🌤️';
+        if (iconCode.startsWith('03') || iconCode.startsWith('04')) return '☁️';
+        if (iconCode.startsWith('09') || iconCode.startsWith('10')) return '🌧️';
+        if (iconCode.startsWith('11')) return '🌩️';
+        if (iconCode.startsWith('13')) return '❄️';
+        if (iconCode.startsWith('50')) return '🌫️';
+        return '⛅';
+    }
+
+    function mapOwmCategory(main) {
+        if (!main) return 'clear';
+        const m = main.toLowerCase();
+        if (m.includes('rain') || m.includes('drizzle') || m.includes('thunderstorm')) return 'rain';
+        if (m.includes('cloud')) return 'clouds';
+        if (m.includes('clear')) return 'clear';
+        if (m.includes('mist') || m.includes('fog') || m.includes('haze')) return 'mist';
+        return 'clear';
+    }
+
+    function showLoader(visible) {
+        document.getElementById('loaderOverlay').style.display = visible ? 'flex' : 'none';
+    }
+</script>
+
+</body>
+</html>
