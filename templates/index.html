@@ -1548,19 +1548,27 @@
         // 1. Fetch Node 1 (Soil Moisture, Pump, Lamp) from projectiot.in
         try {
             const url = `${fetchUrl}?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`;
-            const response = await fetch(url, { cache: "no-store" });
-            if (response.ok) {
+            let response = null;
+            try {
+                response = await fetch(url, { cache: "no-store" });
+            } catch (corsErr) {
+                // Fallback via CORS bridge for GitHub Pages client-side static hosting
+                response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+            }
+            if (response && response.ok) {
                 const text = await response.text();
-                const parts = text.split(',');
-                if (parts.length >= 4) {
-                    telemetry.lamp = parts[0].trim();
-                    telemetry.moisture = parseFloat(parts[1]) || 0;
-                    telemetry.pump = parts[2].trim();
-                    telemetry.lastUpdated = parts[3].trim();
+                if (text && text.trim() !== "false") {
+                    const parts = text.split(',');
+                    if (parts.length >= 4) {
+                        telemetry.lamp = parts[0].trim();
+                        telemetry.moisture = parseFloat(parts[1]) || 0;
+                        telemetry.pump = parts[2].trim();
+                        telemetry.lastUpdated = parts[3].trim();
+                    }
                 }
             }
         } catch (e) {
-            console.log("Direct IoT fetch note (CORS or server offline, retaining latest state)");
+            console.log("Direct IoT fetch note (retaining latest state):", e);
         }
 
         // 2. Fetch Node 2 (Soil pH) from Telegram Bot API
