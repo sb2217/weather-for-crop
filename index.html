@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriWeather – Live Weather & Crop Advisory</title>
+    <title>AgriWeather IoT – Smart Farming, Soil pH & Crop Advisory</title>
+    <!-- PWA meta tags -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AgriWeather IoT">
+    
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,9 +23,10 @@
             --primary-dark: #059669;
             --secondary: #f59e0b;
             --danger: #ef4444;
-            --surface: rgba(255, 255, 255, 0.82);
-            --surface-card: rgba(255, 255, 255, 0.72);
-            --surface-border: rgba(255, 255, 255, 0.4);
+            --info: #0284c7;
+            --surface: rgba(255, 255, 255, 0.85);
+            --surface-card: rgba(255, 255, 255, 0.75);
+            --surface-border: rgba(255, 255, 255, 0.45);
             --text-main: #0f172a;
             --text-muted: #475569;
             --glass-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
@@ -27,13 +35,13 @@
         }
 
         body.dark-theme {
-            --surface: rgba(15, 23, 42, 0.85);
-            --surface-card: rgba(30, 41, 59, 0.78);
-            --surface-border: rgba(255, 255, 255, 0.1);
+            --surface: rgba(15, 23, 42, 0.88);
+            --surface-card: rgba(30, 41, 59, 0.82);
+            --surface-border: rgba(255, 255, 255, 0.12);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --glass-shadow: 0 16px 38px rgba(0, 0, 0, 0.45);
-            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            --glass-shadow: 0 16px 38px rgba(0, 0, 0, 0.5);
+            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
         }
 
         * {
@@ -48,18 +56,16 @@
             min-height: 100vh;
             background: #0f172a url('./static/crop_weather_bg.jpg') no-repeat center center fixed;
             background-size: cover;
-            transition: background-image 0.8s ease-in-out, color 0.3s ease;
+            transition: background-image 0.5s ease;
             position: relative;
-            padding: 24px 16px;
-            overflow-x: hidden;
         }
 
-        /* Subtle dark overlay for readability */
         body::before {
             content: '';
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.35) 0%, rgba(0, 0, 0, 0.5) 100%);
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
             z-index: 0;
             pointer-events: none;
         }
@@ -67,51 +73,82 @@
         .app-container {
             position: relative;
             z-index: 1;
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
+            padding: 24px 20px 80px 20px;
         }
 
         /* Header Navigation */
         header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
+            align-items: center;
             background: var(--surface);
             backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
             border: 1px solid var(--surface-border);
+            padding: 16px 28px;
             border-radius: 20px;
-            padding: 16px 24px;
             box-shadow: var(--glass-shadow);
             margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
         .logo-area {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .logo-icon {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #10b981, #047857);
-            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 20px;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
         }
 
         .logo-text h1 {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: -0.5px;
-            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-iot-pulse {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            text-transform: uppercase;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-ring 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+
+        @keyframes pulse-ring {
+            to {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
         }
 
         .logo-text span {
@@ -128,33 +165,44 @@
         }
 
         .btn-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            font-size: 13px;
-            font-weight: 600;
             background: var(--surface-card);
             border: 1px solid var(--surface-border);
-            border-radius: 12px;
             color: var(--text-main);
+            padding: 9px 16px;
+            border-radius: 12px;
             cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             transition: all 0.2s ease;
+            box-shadow: var(--card-shadow);
         }
 
         .btn-toggle:hover {
-            transform: translateY(-1px);
-            background: var(--surface);
+            transform: translateY(-2px);
+            border-color: var(--primary);
         }
 
-        /* Search & Presets */
+        .btn-iot-settings {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: white;
+            border: none;
+        }
+        .btn-iot-settings:hover {
+            color: white;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+        }
+
+        /* Search Section */
         .search-section {
             background: var(--surface);
             backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
             border: 1px solid var(--surface-border);
+            padding: 16px 20px;
             border-radius: 20px;
-            padding: 20px 24px;
             box-shadow: var(--glass-shadow);
             margin-bottom: 24px;
         }
@@ -162,54 +210,56 @@
         .search-bar {
             display: flex;
             gap: 12px;
-            position: relative;
+            flex-wrap: wrap;
         }
 
         .search-input-wrapper {
-            position: relative;
             flex: 1;
+            min-width: 250px;
+            position: relative;
+            display: flex;
+            align-items: center;
         }
 
         .search-input-wrapper i {
             position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
+            left: 18px;
             color: var(--text-muted);
-            font-size: 16px;
+            font-size: 15px;
         }
 
-        .search-bar input {
+        .search-input-wrapper input {
             width: 100%;
-            padding: 14px 16px 14px 44px;
-            font-size: 15px;
-            font-family: inherit;
+            padding: 14px 18px 14px 48px;
             border-radius: 14px;
             border: 1px solid var(--surface-border);
             background: var(--surface-card);
             color: var(--text-main);
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 500;
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
         }
 
-        .search-bar input:focus {
+        .search-input-wrapper input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             border: none;
-            padding: 0 24px;
+            padding: 14px 24px;
             border-radius: 14px;
+            cursor: pointer;
             font-weight: 600;
             font-size: 14px;
-            cursor: pointer;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
         }
 
@@ -220,50 +270,47 @@
 
         .btn-gps {
             background: var(--surface-card);
-            color: var(--text-main);
             border: 1px solid var(--surface-border);
-            padding: 0 18px;
+            color: var(--text-main);
+            padding: 14px 18px;
             border-radius: 14px;
+            cursor: pointer;
             font-weight: 600;
             font-size: 14px;
-            cursor: pointer;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 8px;
             transition: all 0.2s;
         }
 
         .btn-gps:hover {
-            background: var(--surface);
-            color: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
         }
 
         .quick-presets {
-            margin-top: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-top: 12px;
             flex-wrap: wrap;
         }
 
         .quick-presets span {
             font-size: 12px;
-            font-weight: 600;
             color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
         .preset-chip {
+            padding: 5px 12px;
             background: var(--surface-card);
             border: 1px solid var(--surface-border);
-            padding: 5px 12px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 500;
-            color: var(--text-main);
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
 
         .preset-chip:hover {
@@ -272,67 +319,18 @@
             border-color: var(--primary);
         }
 
-        /* Weather Status Banner & Alerts */
-        .alerts-wrapper {
-            margin-bottom: 24px;
-            display: none;
-        }
-
-        .alert-card {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
-            border-radius: 16px;
-            padding: 14px 20px;
-            color: #ef4444;
+        /* Section Headings */
+        .section-header {
             display: flex;
             align-items: center;
-            gap: 14px;
-            margin-bottom: 10px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .alert-card.warning {
-            background: rgba(245, 158, 11, 0.15);
-            border-color: rgba(245, 158, 11, 0.4);
-            color: #d97706;
-        }
-
-        body.dark-theme .alert-card.warning {
-            color: #fbbf24;
-        }
-
-        /* Weather Hero Dashboard */
-        .weather-grid {
-            display: grid;
-            grid-template-columns: 1.3fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        @media (max-width: 900px) {
-            .weather-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .weather-hero {
-            background: var(--surface);
-            backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
-            border: 1px solid var(--surface-border);
-            border-radius: 24px;
-            padding: 28px;
-            box-shadow: var(--glass-shadow);
-            display: flex;
-            flex-direction: column;
             justify-content: space-between;
+            margin: 32px 0 16px 0;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
-        .location-info h2 {
-            font-size: 32px;
+        .section-title {
+            font-size: 20px;
             font-weight: 800;
             letter-spacing: -0.5px;
             display: flex;
@@ -340,226 +338,424 @@
             gap: 10px;
         }
 
-        .location-info .timestamp {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-top: 4px;
+        .section-title i {
+            color: var(--primary);
         }
 
-        .hero-temp-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 24px 0 16px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .hero-temp {
-            font-size: 64px;
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: -2px;
-            color: var(--text-main);
-        }
-
-        .hero-condition {
-            text-align: right;
-        }
-
-        .condition-icon {
-            font-size: 54px;
-            margin-bottom: 6px;
-            display: inline-block;
-        }
-
-        .condition-text {
-            font-size: 18px;
-            font-weight: 600;
-            text-transform: capitalize;
-        }
-
-        .weather-metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 14px;
-        }
-
-        .metric-card {
-            background: var(--surface-card);
-            border: 1px solid var(--surface-border);
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .metric-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .icon-humidity { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-        .icon-temp { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-        .icon-wind { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-        .icon-pressure { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
-
-        .metric-details .label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .metric-details .value {
-            font-size: 18px;
-            font-weight: 700;
-            margin-top: 2px;
-        }
-
-        /* Agricultural Summary Card */
-        .agri-summary {
+        /* ---------------- SECTION: IoT Live Telemetry Grid (APK replacement) ---------------- */
+        .iot-panel {
             background: var(--surface);
             backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
             border: 1px solid var(--surface-border);
             border-radius: 24px;
-            padding: 28px;
+            padding: 24px;
             box-shadow: var(--glass-shadow);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            margin-bottom: 28px;
         }
 
-        .agri-summary-header {
+        .iot-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
-        .agri-summary-header h3 {
+        .iot-header-info h3 {
             font-size: 18px;
-            font-weight: 700;
+            font-weight: 800;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .comfort-score-badge {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
+        .iot-header-info p {
             font-size: 12px;
-            font-weight: 700;
-            padding: 6px 14px;
-            border-radius: 20px;
+            color: var(--text-muted);
+            margin-top: 2px;
         }
 
-        .field-indicators {
+        .iot-actions {
             display: flex;
-            flex-direction: column;
-            gap: 16px;
+            align-items: center;
+            gap: 10px;
         }
 
-        .indicator-item {
+        .iot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .telemetry-card {
             background: var(--surface-card);
             border: 1px solid var(--surface-border);
-            border-radius: 14px;
-            padding: 14px 16px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .indicator-label {
+        .telemetry-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+        }
+
+        .telemetry-top {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
+            align-items: flex-start;
+            margin-bottom: 14px;
         }
 
-        .indicator-bar-bg {
+        .telemetry-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .icon-soil { background: linear-gradient(135deg, #10b981, #047857); }
+        .icon-pump { background: linear-gradient(135deg, #0284c7, #0369a1); }
+        .icon-lamp { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .icon-ph { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+        .telemetry-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .telemetry-value {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin: 4px 0;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .telemetry-unit {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .telemetry-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge-on {
+            background: #dcfce7;
+            color: #15803d;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+            animation: pulse-badge 2s infinite;
+        }
+        .badge-off {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        .badge-lamp-on {
+            background: #fef3c7;
+            color: #b45309;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+        }
+
+        @keyframes pulse-badge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+
+        .telemetry-footer {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .progress-bar-bg {
             height: 8px;
+            width: 100%;
             background: rgba(0, 0, 0, 0.08);
             border-radius: 10px;
+            margin-top: 8px;
             overflow: hidden;
-            position: relative;
         }
-
-        body.dark-theme .indicator-bar-bg {
+        body.dark-theme .progress-bar-bg {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        .indicator-bar-fill {
+        .progress-bar-fill {
             height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
             border-radius: 10px;
             transition: width 0.6s ease;
         }
 
-        .bar-green { background: linear-gradient(90deg, #34d399, #10b981); }
-        .bar-blue { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
-        .bar-amber { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
-
-        .agri-insight {
-            font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.5;
-            background: rgba(16, 185, 129, 0.08);
-            border-left: 3px solid var(--primary);
-            padding: 12px 14px;
-            border-radius: 0 12px 12px 0;
-            margin-top: 14px;
-        }
-
-        /* Crop Recommendation Section */
-        .crop-section {
+        /* ---------------- SECTION: Soil pH Neutralizer & Prescription ---------------- */
+        .ph-prescription-card {
             background: var(--surface);
             backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
             border: 1px solid var(--surface-border);
             border-radius: 24px;
             padding: 28px;
             box-shadow: var(--glass-shadow);
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
-        .crop-section-header {
+        .ph-slider-wrapper {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            padding: 20px;
+            border-radius: 18px;
+            margin: 20px 0;
+        }
+
+        .ph-spectrum-bar {
+            height: 14px;
+            border-radius: 10px;
+            background: linear-gradient(to right, 
+                #ef4444 0%, /* 3.0 Very Acidic */
+                #f97316 20%, /* 5.0 Acidic */
+                #10b981 50%, /* 7.0 Neutral */
+                #3b82f6 80%, /* 8.5 Alkaline */
+                #7c3aed 100% /* 10.0 Very Alkaline */
+            );
+            margin: 10px 0 16px 0;
+            position: relative;
+        }
+
+        .ph-range-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .ph-slider {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--primary);
+            height: 6px;
+        }
+
+        .rx-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .rx-box {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rx-box h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rx-highlight {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+        body.dark-theme .rx-highlight {
+            color: var(--primary);
+        }
+
+        .rx-desc {
+            font-size: 13px;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        /* ---------------- SECTION: Next-Day Precision Action Planner ---------------- */
+        .advisory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .advisory-card {
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 22px;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s;
+        }
+
+        .advisory-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .advisory-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 12px;
         }
 
-        .crop-section-header h2 {
-            font-size: 24px;
+        .advisory-badge {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .badge-delay { background: #fee2e2; color: #dc2626; }
+        .badge-optimal { background: #dcfce7; color: #16a34a; }
+        .badge-caution { background: #fef3c7; color: #d97706; }
+        .badge-info { background: #e0f2fe; color: #0284c7; }
+
+        .advisory-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .advisory-body {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ---------------- SECTION: Weather & Forecast Cards ---------------- */
+        .weather-hero {
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--glass-shadow);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 28px;
+            align-items: center;
+        }
+
+        .hero-left h2 {
+            font-size: 26px;
             font-weight: 800;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .filter-tabs {
+        .hero-temp-block {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .hero-temp-value {
+            font-size: 54px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+
+        .hero-weather-icon {
+            font-size: 50px;
+            color: var(--secondary);
+        }
+
+        .hero-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .hero-metric-tile {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hero-metric-tile i {
+            font-size: 22px;
+            color: var(--primary);
+        }
+
+        .hero-metric-tile .title {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .hero-metric-tile .val {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        /* ---------------- SECTION: Crop Suitability Matrix ---------------- */
+        .crop-filter-chips {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            margin-bottom: 20px;
         }
 
         .filter-btn {
             background: var(--surface-card);
             border: 1px solid var(--surface-border);
-            padding: 6px 14px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
             color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -570,196 +766,179 @@
             border-color: var(--primary);
         }
 
-        .crops-grid {
+        .crop-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 18px;
         }
 
         .crop-card {
-            background: var(--surface-card);
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
             border: 1px solid var(--surface-border);
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 20px;
+            box-shadow: var(--glass-shadow);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-            overflow: hidden;
+            gap: 14px;
+            transition: transform 0.2s;
         }
 
         .crop-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+            transform: translateY(-3px);
         }
 
         .crop-card-top {
             display: flex;
-            align-items: flex-start;
             justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .crop-title-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .crop-emoji {
-            font-size: 32px;
-            line-height: 1;
+            align-items: flex-start;
         }
 
         .crop-name {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 17px;
+            font-weight: 800;
         }
 
-        .crop-season {
+        .crop-season-tag {
             font-size: 11px;
             color: var(--text-muted);
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-
-        .status-badge {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-        }
-
-        .status-optimal {
-            background: rgba(16, 185, 129, 0.2);
-            color: #059669;
-            border: 1px solid rgba(16, 185, 129, 0.4);
-        }
-
-        body.dark-theme .status-optimal {
-            color: #34d399;
-        }
-
-        .status-moderate {
-            background: rgba(245, 158, 11, 0.2);
-            color: #d97706;
-            border: 1px solid rgba(245, 158, 11, 0.4);
-        }
-
-        body.dark-theme .status-moderate {
-            color: #fbbf24;
-        }
-
-        .status-poor {
-            background: rgba(239, 68, 68, 0.15);
-            color: #dc2626;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        body.dark-theme .status-poor {
-            color: #f87171;
-        }
-
-        .crop-conditions {
-            margin: 12px 0;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .condition-row {
-            display: flex;
-            justify-content: space-between;
-            color: var(--text-muted);
-        }
-
-        .condition-row strong {
-            color: var(--text-main);
-        }
-
-        .crop-advice {
-            font-size: 12px;
-            color: var(--text-muted);
-            line-height: 1.45;
-            padding-top: 10px;
-            border-top: 1px solid var(--surface-border);
-            margin-top: 4px;
-        }
-
-        /* Footer */
-        footer {
-            background: var(--surface);
-            backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
-            border: 1px solid var(--surface-border);
-            border-radius: 20px;
-            padding: 18px 24px;
-            box-shadow: var(--glass-shadow);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        footer a {
-            color: var(--primary);
-            text-decoration: none;
             font-weight: 600;
         }
 
-        footer a:hover {
-            text-decoration: underline;
+        .crop-score-badge {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
         }
 
-        /* Loader */
-        .loader-overlay {
+        .crop-specs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            background: var(--surface-card);
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .crop-specs div span {
+            display: block;
+            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .crop-specs div strong {
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .crop-rationale {
+            font-size: 12px;
+            line-height: 1.4;
+            color: var(--text-main);
+        }
+
+        /* ---------------- Modal Settings ---------------- */
+        .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(15, 23, 42, 0.7);
             backdrop-filter: blur(8px);
-            z-index: 100;
             display: none;
             align-items: center;
             justify-content: center;
-            flex-direction: column;
-            gap: 16px;
-            color: white;
+            z-index: 999;
+            padding: 20px;
         }
 
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        .modal-overlay.active {
+            display: flex;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .modal-content {
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 580px;
+            padding: 28px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
-        /* Responsive tweaks */
-        @media (max-width: 600px) {
-            .search-bar {
-                flex-direction: column;
-            }
-            .hero-temp {
-                font-size: 48px;
-            }
-            .crop-section-header {
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 19px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .modal-group {
+            margin-bottom: 18px;
+        }
+
+        .modal-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .modal-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--surface-border);
+            background: var(--surface-card);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .modal-group small {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+            .header-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .hero-temp-value {
+                font-size: 42px;
             }
         }
     </style>
@@ -775,28 +954,40 @@
                 <i class="fa-solid fa-wheat-awn"></i>
             </div>
             <div class="logo-text">
-                <h1>AgriWeather</h1>
-                <span>Live Weather & Smart Crop Advisory</span>
+                <h1>
+                    AgriWeather IoT
+                    <span class="badge-iot-pulse">
+                        <span class="pulse-dot"></span>
+                        <span id="headerIotStatus">Hardware Live</span>
+                    </span>
+                </h1>
+                <span>All-in-One Smart Farming, Soil pH & Crop Advisory</span>
             </div>
         </div>
 
         <div class="header-controls">
+            <!-- Hardware IoT Settings Modal Button -->
+            <button class="btn-toggle btn-iot-settings" onclick="openIotModal()" title="Configure ESP8266 & Telegram Bot">
+                <i class="fa-solid fa-microchip"></i>
+                <span>IoT Hardware</span>
+            </button>
+
             <!-- Units Toggle -->
             <button class="btn-toggle" id="unitToggle" onclick="toggleTemperatureUnit()" title="Toggle Celsius / Fahrenheit">
                 <i class="fa-solid fa-temperature-half"></i>
                 <span id="unitText">°C / Metric</span>
             </button>
 
-            <!-- Background Theme Switcher -->
-            <button class="btn-toggle" id="bgToggle" onclick="cycleBackground()" title="Switch Custom Background">
-                <i class="fa-solid fa-image"></i>
-                <span id="bgText">Custom Farm BG</span>
-            </button>
-
             <!-- Night / Dark Mode -->
             <button class="btn-toggle" id="themeToggle" onclick="toggleDarkMode()" title="Toggle Dark Glass Mode">
                 <i class="fa-solid fa-moon"></i>
                 <span id="themeText">Dark Mode</span>
+            </button>
+
+            <!-- Install PWA Button (Hidden by default unless installable) -->
+            <button class="btn-toggle" id="pwaInstallBtn" style="display:none;" onclick="installPWA()" title="Install as Mobile App">
+                <i class="fa-solid fa-download"></i>
+                <span>Install App</span>
             </button>
         </div>
     </header>
@@ -806,7 +997,7 @@
         <form class="search-bar" onsubmit="handleSearch(event)">
             <div class="search-input-wrapper">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="cityInput" placeholder="Enter city name (e.g., Delhi, Punjab, California, London, Tokyo)..." autocomplete="off" required>
+                <input type="text" id="cityInput" placeholder="Enter farm location (e.g., Kanpur, Punjab, Delhi, California)..." autocomplete="off" required>
             </div>
             <button type="submit" class="btn-primary">
                 <i class="fa-solid fa-cloud-sun"></i> Check Weather
@@ -817,811 +1008,1045 @@
         </form>
 
         <div class="quick-presets">
-            <span>Popular Regions:</span>
-            <div class="preset-chip" onclick="searchCity('Delhi')">Delhi</div>
+            <span>Quick Regions:</span>
+            <div class="preset-chip" onclick="searchCity('Kanpur')">Kanpur (Project Site)</div>
             <div class="preset-chip" onclick="searchCity('Punjab')">Punjab</div>
+            <div class="preset-chip" onclick="searchCity('Delhi')">Delhi</div>
             <div class="preset-chip" onclick="searchCity('Bengaluru')">Bengaluru</div>
             <div class="preset-chip" onclick="searchCity('California')">California</div>
             <div class="preset-chip" onclick="searchCity('London')">London</div>
-            <div class="preset-chip" onclick="searchCity('Sao Paulo')">São Paulo</div>
-            <div class="preset-chip" onclick="searchCity('Nairobi')">Nairobi</div>
-            <div class="preset-chip" onclick="searchCity('Tokyo')">Tokyo</div>
         </div>
     </section>
 
-    <!-- Alerts Container -->
-    <div class="alerts-wrapper" id="alertsContainer"></div>
+    <!-- SECTION 1: IoT Live Telemetry Grid (Complete APK Replacement) -->
+    <div class="section-header">
+        <div class="section-title">
+            <i class="fa-solid fa-satellite-dish"></i>
+            Live Farm IoT Nodes (Model Telemetry)
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted);">
+            NodeMCU ESP8266 + Sensors Live Stream
+        </div>
+    </div>
 
-    <!-- Weather Hero Dashboard -->
-    <section class="weather-grid">
-        <!-- Weather Hero Card -->
-        <div class="weather-hero">
-            <div>
-                <div class="location-info">
-                    <h2 id="cityName">
-                        <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i>
-                        <span id="displayCity">Detecting Weather...</span>
-                    </h2>
-                    <div class="timestamp" id="lastUpdated">Updated just now • Live data feed</div>
-                </div>
+    <section class="iot-panel">
+        <div class="iot-header">
+            <div class="iot-header-info">
+                <h3>
+                    <i class="fa-solid fa-wifi" style="color: var(--primary);"></i>
+                    Node 1 & Node 2 Real-Time Stream
+                </h3>
+                <p id="iotLastUpdated">Syncing with projectiot.in & Telegram Bot...</p>
+            </div>
+            <div class="iot-actions">
+                <button class="btn-toggle" onclick="pollAllTelemetry()" title="Refresh Telemetry">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span>Sync Now</span>
+                </button>
+                <button class="btn-toggle" id="demoToggleBtn" onclick="toggleDemoStream()" title="Simulate Hardware Data">
+                    <i class="fa-solid fa-flask"></i>
+                    <span id="demoToggleText">Demo Stream: OFF</span>
+                </button>
+            </div>
+        </div>
 
-                <div class="hero-temp-wrapper">
+        <div class="iot-grid">
+            <!-- Soil Moisture Tile -->
+            <div class="telemetry-card">
+                <div class="telemetry-top">
                     <div>
-                        <div class="hero-temp" id="tempDisplay">--°C</div>
-                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
-                            Feels like: <strong id="feelsLikeDisplay">--°C</strong>
+                        <div class="telemetry-title">Soil Moisture (नमी)</div>
+                        <div class="telemetry-value">
+                            <span id="moistVal">45</span>
+                            <span class="telemetry-unit">%</span>
                         </div>
                     </div>
-                    <div class="hero-condition">
-                        <div class="condition-icon" id="weatherIcon">🌾</div>
-                        <div class="condition-text" id="weatherDesc">Loading...</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="weather-metrics">
-                <div class="metric-card">
-                    <div class="metric-icon icon-humidity">
+                    <div class="telemetry-icon icon-soil">
                         <i class="fa-solid fa-droplet"></i>
                     </div>
-                    <div class="metric-details">
-                        <div class="label">Humidity</div>
-                        <div class="value" id="humidityDisplay">--%</div>
-                    </div>
                 </div>
-
-                <div class="metric-card">
-                    <div class="metric-icon icon-wind">
-                        <i class="fa-solid fa-wind"></i>
-                    </div>
-                    <div class="metric-details">
-                        <div class="label">Wind Speed</div>
-                        <div class="value" id="windDisplay">-- km/h</div>
-                    </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="moistBar" style="width: 45%;"></div>
                 </div>
-
-                <div class="metric-card">
-                    <div class="metric-icon icon-temp">
-                        <i class="fa-solid fa-temperature-arrow-up"></i>
-                    </div>
-                    <div class="metric-details">
-                        <div class="label">High / Low</div>
-                        <div class="value" id="minMaxDisplay">-- / --</div>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-icon icon-pressure">
-                        <i class="fa-solid fa-gauge-high"></i>
-                    </div>
-                    <div class="metric-details">
-                        <div class="label">Pressure</div>
-                        <div class="value" id="pressureDisplay">-- hPa</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Agricultural Overview & Comfort -->
-        <div class="agri-summary">
-            <div>
-                <div class="agri-summary-header">
-                    <h3><i class="fa-solid fa-seedling" style="color: var(--primary);"></i> Agricultural Climate Index</h3>
-                    <div class="comfort-score-badge" id="agriRatingBadge">Evaluating...</div>
-                </div>
-
-                <div class="field-indicators">
-                    <div class="indicator-item">
-                        <div class="indicator-label">
-                            <span>Moisture & Humidity Suitability</span>
-                            <span id="humidityBarText">--</span>
-                        </div>
-                        <div class="indicator-bar-bg">
-                            <div class="indicator-bar-fill bar-blue" id="humidityBar" style="width: 50%;"></div>
-                        </div>
-                    </div>
-
-                    <div class="indicator-item">
-                        <div class="indicator-label">
-                            <span>Thermal Comfort for Crops</span>
-                            <span id="thermalBarText">--</span>
-                        </div>
-                        <div class="indicator-bar-bg">
-                            <div class="indicator-bar-fill bar-green" id="thermalBar" style="width: 50%;"></div>
-                        </div>
-                    </div>
+                <div class="telemetry-footer">
+                    <span id="moistStatusText" style="font-weight: 700; color: var(--primary);">Optimal Hydration</span>
+                    <span>Probe: Analog A0</span>
                 </div>
             </div>
 
-            <div class="agri-insight" id="agriSummaryText">
-                Fetching regional agro-meteorological parameters to generate crop planting feasibility and irrigation schedules...
+            <!-- Pump Status Tile -->
+            <div class="telemetry-card">
+                <div class="telemetry-top">
+                    <div>
+                        <div class="telemetry-title">Water Pump (मोटर)</div>
+                        <div class="telemetry-value" id="pumpVal">OFF</div>
+                    </div>
+                    <div class="telemetry-icon icon-pump">
+                        <i class="fa-solid fa-water"></i>
+                    </div>
+                </div>
+                <div>
+                    <span class="telemetry-badge badge-off" id="pumpBadge">
+                        <i class="fa-solid fa-power-off"></i> Relay Inactive
+                    </span>
+                </div>
+                <div class="telemetry-footer">
+                    <span>Auto-triggers when Soil &lt; 30%</span>
+                    <span>5V Relay Ch1</span>
+                </div>
+            </div>
+
+            <!-- Lamp Status Tile -->
+            <div class="telemetry-card">
+                <div class="telemetry-top">
+                    <div>
+                        <div class="telemetry-title">Farm Lamp (प्रकाश)</div>
+                        <div class="telemetry-value" id="lampVal">OFF</div>
+                    </div>
+                    <div class="telemetry-icon icon-lamp">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                </div>
+                <div>
+                    <span class="telemetry-badge badge-off" id="lampBadge">
+                        <i class="fa-solid fa-moon"></i> Daytime Idle
+                    </span>
+                </div>
+                <div class="telemetry-footer">
+                    <span>Triggers on LDR Darkness</span>
+                    <span>RL Module Ch2</span>
+                </div>
+            </div>
+
+            <!-- Live Soil pH Tile (Telegram Bot Bridge) -->
+            <div class="telemetry-card">
+                <div class="telemetry-top">
+                    <div>
+                        <div class="telemetry-title">Soil pH (मृदा पीएच)</div>
+                        <div class="telemetry-value">
+                            <span id="phValDisplay">5.40</span>
+                            <span class="telemetry-unit">pH</span>
+                        </div>
+                    </div>
+                    <div class="telemetry-icon icon-ph">
+                        <i class="fa-solid fa-flask-vial"></i>
+                    </div>
+                </div>
+                <div>
+                    <span class="telemetry-badge" id="phBadge" style="background:#fee2e2; color:#dc2626;">
+                        <i class="fa-solid fa-circle-exclamation"></i> Moderately Acidic
+                    </span>
+                </div>
+                <div class="telemetry-footer">
+                    <span id="phSourceText">Source: Telegram Bot</span>
+                    <span>ESP8266 #2 Hotspot</span>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Crop Recommendations Section -->
-    <section class="crop-section">
-        <div class="crop-section-header">
+    <!-- SECTION 2: Soil pH Diagnostic & Neutralization Prescription Center -->
+    <div class="section-header">
+        <div class="section-title">
+            <i class="fa-solid fa-prescription-bottle-medical"></i>
+            Soil pH Neutralization & Prescription Center
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted);">
+            Scientific Soil Health & Chemical Amendment Calculator
+        </div>
+    </div>
+
+    <section class="ph-prescription-card">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
             <div>
-                <h2><i class="fa-solid fa-tractor" style="color: var(--primary);"></i> Crop Suitability Advisory</h2>
-                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
-                    Real-time agronomic recommendations mapped against current temperature and atmospheric moisture
+                <h3 id="rxCategoryTitle" style="font-size: 20px; font-weight: 800; color: var(--text-main);">
+                    Moderately Acidic Soil (pH 5.40)
+                </h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                    Adjust slider below to simulate or prescribe for any field soil test report:
+                </p>
+            </div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--primary);">
+                Current Target: <span id="rxCurrentPh">5.40</span> pH
+            </div>
+        </div>
+
+        <!-- Interactive Spectrum & Slider -->
+        <div class="ph-slider-wrapper">
+            <div class="ph-range-labels">
+                <span>3.0 (Severe Acid)</span>
+                <span>5.5 (Acidic)</span>
+                <span>7.0 (Optimal Neutral)</span>
+                <span>8.5 (Alkaline)</span>
+                <span>10.0 (High Sodic)</span>
+            </div>
+            <div class="ph-spectrum-bar"></div>
+            <input type="range" class="ph-slider" id="phManualSlider" min="3.0" max="10.0" step="0.1" value="5.4" oninput="onManualPhChange(this.value)">
+        </div>
+
+        <!-- Dynamic Prescription Boxes -->
+        <div class="rx-grid">
+            <!-- Box 1: Chemical Neutralizer -->
+            <div class="rx-box">
+                <h4><i class="fa-solid fa-flask" style="color: #ef4444;"></i> Primary Chemical Remedy</h4>
+                <div class="rx-highlight" id="rxRemedyTitle">Agricultural Lime (CaCO3)</div>
+                <div class="rx-desc" id="rxDosageText">
+                    <strong>Recommended Dosage:</strong> 150 – 200 g/m² (approx. 600 - 800 kg per acre).
                 </div>
             </div>
 
-            <div class="filter-tabs">
-                <button class="filter-btn active" onclick="filterCrops('all', this)">All Crops</button>
-                <button class="filter-btn" onclick="filterCrops('optimal', this)">Recommended (Optimal)</button>
-                <button class="filter-btn" onclick="filterCrops('rabi', this)">Rabi / Winter</button>
-                <button class="filter-btn" onclick="filterCrops('kharif', this)">Kharif / Monsoon</button>
-                <button class="filter-btn" onclick="filterCrops('cash', this)">Cash Crops</button>
+            <!-- Box 2: Organic Remedy -->
+            <div class="rx-box">
+                <h4><i class="fa-solid fa-leaf" style="color: #10b981;"></i> Organic & Natural Soil Conditioners</h4>
+                <div class="rx-highlight" id="rxOrganicTitle">Wood Ash & Farmyard Manure</div>
+                <div class="rx-desc" id="rxOrganicDesc">
+                    Apply hardwood ash @ 100 g/m² combined with well-rotted cow dung manure or vermicompost.
+                </div>
             </div>
-        </div>
 
-        <div class="crops-grid" id="cropsGrid">
-            <!-- Dynamic Crop Cards injected by JavaScript -->
+            <!-- Box 3: Method of Application -->
+            <div class="rx-box">
+                <h4><i class="fa-solid fa-clock-rotate-left" style="color: #0284c7;"></i> Application Method & Timing</h4>
+                <div class="rx-highlight">3 - 4 Weeks Before Sowing</div>
+                <div class="rx-desc" id="rxMethodDesc">
+                    Broadcast neutralizing agent evenly across dry field. Deep plough (rotavator) to top 15 cm soil depth and irrigate lightly.
+                </div>
+            </div>
+
+            <!-- Box 4: Nutrient Lockout Risk -->
+            <div class="rx-box">
+                <h4><i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Nutrient Availability Warning</h4>
+                <div class="rx-highlight" id="rxLockoutTitle">Phosphorus Lockout Risk</div>
+                <div class="rx-desc" id="rxLockoutDesc">
+                    At this pH level, Phosphorus (P) bonds tightly with Aluminum and Iron, rendering costly DAP/NPK fertilizers unavailable to crops.
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer>
-        <div>
-            <strong>AgriWeather &copy; 2026</strong> • Open Agricultural Weather Intelligence
+    <!-- SECTION 3: Next-Day & Future Precision Action Planner ("What to do Tomorrow") -->
+    <div class="section-header">
+        <div class="section-title">
+            <i class="fa-solid fa-calendar-day"></i>
+            Tomorrow's Precision Farm Action Planner
         </div>
-        <div>
-            Repository: <a href="https://github.com/sb2217/weather-for-crop" target="_blank"><i class="fa-brands fa-github"></i> sb2217/weather-for-crop</a>
+        <div style="font-size: 13px; color: var(--text-muted);">
+            Driven by 24h & 48h Hourly Meteorological Model
         </div>
-    </footer>
+    </div>
+
+    <div class="advisory-grid" id="advisoryContainer">
+        <!-- Card 1: Fertilizer Spraying -->
+        <div class="advisory-card">
+            <div>
+                <div class="advisory-header">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FERTILIZER & SPRAY</span>
+                    <span class="advisory-badge badge-optimal" id="sprayBadge">Optimal Window</span>
+                </div>
+                <div class="advisory-title">
+                    <i class="fa-solid fa-spray-can-sparkles" style="color: var(--primary);"></i>
+                    <span id="sprayTitle">Safe for Foliar Spray Tomorrow</span>
+                </div>
+                <div class="advisory-body" id="sprayBody">
+                    Rain probability is low (&lt;20%) and wind speeds are gentle (&lt;12 km/h). Best spraying hours: 7:00 AM – 10:00 AM.
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Smart Irrigation Sync -->
+        <div class="advisory-card">
+            <div>
+                <div class="advisory-header">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SMART IRRIGATION</span>
+                    <span class="advisory-badge badge-info" id="irrigBadge">Monitoring</span>
+                </div>
+                <div class="advisory-title">
+                    <i class="fa-solid fa-faucet-drip" style="color: var(--info);"></i>
+                    <span id="irrigTitle">Irrigation Coordination</span>
+                </div>
+                <div class="advisory-body" id="irrigBody">
+                    Correlating hardware soil moisture reading with tomorrow's predicted rainfall...
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Disease & Fungal Warning -->
+        <div class="advisory-card">
+            <div>
+                <div class="advisory-header">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PEST & DISEASE</span>
+                    <span class="advisory-badge badge-optimal" id="pestBadge">Low Risk</span>
+                </div>
+                <div class="advisory-title">
+                    <i class="fa-solid fa-biohazard" style="color: var(--secondary);"></i>
+                    <span id="pestTitle">Fungal Blight Risk Assessment</span>
+                </div>
+                <div class="advisory-body" id="pestBody">
+                    Atmospheric humidity levels are safe. Low risk of fungal spore propagation or rust disease.
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Thermal & Frost Protection -->
+        <div class="advisory-card">
+            <div>
+                <div class="advisory-header">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">THERMAL STRESS</span>
+                    <span class="advisory-badge badge-optimal" id="thermalBadge">Comfortable</span>
+                </div>
+                <div class="advisory-title">
+                    <i class="fa-solid fa-temperature-arrow-up" style="color: var(--primary);"></i>
+                    <span id="thermalTitle">Temperature Within Bounds</span>
+                </div>
+                <div class="advisory-body" id="thermalBody">
+                    No extreme heatwave (≥40°C) or ground frost (≤4°C) predicted over the next 48 hours.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4: Live Weather Hero Card -->
+    <div class="section-header">
+        <div class="section-title">
+            <i class="fa-solid fa-cloud-sun-rain"></i>
+            Live Agro-Meteorological Overview
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted);" id="weatherSyncTime">
+            Open-Meteo High-Resolution Feed
+        </div>
+    </div>
+
+    <section class="weather-hero">
+        <div class="hero-left">
+            <h2>
+                <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i>
+                <span id="displayCity">Kanpur, India</span>
+            </h2>
+            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;" id="weatherDesc">
+                Partly Cloudy • Ideal Field Conditions
+            </div>
+
+            <div class="hero-temp-block">
+                <div class="hero-temp-value" id="tempDisplay">28°C</div>
+                <div class="hero-weather-icon" id="weatherIcon">
+                    <i class="fa-solid fa-cloud-sun"></i>
+                </div>
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted);">
+                Feels like: <strong id="feelsLikeDisplay">29°C</strong> • Rain Chance: <strong id="rainProbDisplay">10%</strong>
+            </div>
+        </div>
+
+        <div class="hero-metrics-grid">
+            <div class="hero-metric-tile">
+                <i class="fa-solid fa-droplet"></i>
+                <div>
+                    <div class="title">Air Humidity</div>
+                    <div class="val" id="humidityDisplay">55%</div>
+                </div>
+            </div>
+
+            <div class="hero-metric-tile">
+                <i class="fa-solid fa-wind"></i>
+                <div>
+                    <div class="title">Wind Speed</div>
+                    <div class="val" id="windDisplay">11 km/h</div>
+                </div>
+            </div>
+
+            <div class="hero-metric-tile">
+                <i class="fa-solid fa-gauge-high"></i>
+                <div>
+                    <div class="title">Evaporation Index</div>
+                    <div class="val" id="evapDisplay">Moderate</div>
+                </div>
+            </div>
+
+            <div class="hero-metric-tile">
+                <i class="fa-solid fa-sun"></i>
+                <div>
+                    <div class="title">UV Index</div>
+                    <div class="val" id="uvDisplay">6 (Moderate)</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: Crop Suitability Matrix (Weather + Soil pH Composite Scoring) -->
+    <div class="section-header">
+        <div class="section-title">
+            <i class="fa-solid fa-seedling"></i>
+            Agronomic Crop Suitability Matrix (Weather + Soil pH)
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted);">
+            Matches 9 Major Crops against Current Weather & Measured Soil pH
+        </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="crop-filter-chips">
+        <button class="filter-btn active" onclick="filterCrops('all', this)">All Crops</button>
+        <button class="filter-btn" onclick="filterCrops('rabi', this)">Rabi (Winter)</button>
+        <button class="filter-btn" onclick="filterCrops('kharif', this)">Kharif (Monsoon)</button>
+        <button class="filter-btn" onclick="filterCrops('cash', this)">Cash Crops</button>
+        <button class="filter-btn" onclick="filterCrops('oilseed', this)">Oilseeds</button>
+        <button class="filter-btn" onclick="filterCrops('legume', this)">Legumes</button>
+    </div>
+
+    <div class="crop-grid" id="cropGrid">
+        <!-- Crop Cards Populated dynamically via JavaScript -->
+    </div>
 
 </div>
 
-<!-- Loading Spinner Overlay -->
-<div class="loader-overlay" id="loaderOverlay">
-    <div class="spinner"></div>
-    <div style="font-weight: 600; font-size: 15px;">Fetching Live Meteorological Data...</div>
+<!-- IoT Hardware & Telegram Settings Modal -->
+<div class="modal-overlay" id="iotModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-microchip" style="color: var(--primary);"></i> IoT Hardware & Telegram Setup</h3>
+            <button class="modal-close" onclick="closeIotModal()">&times;</button>
+        </div>
+
+        <form onsubmit="saveIotSettings(event)">
+            <h4 style="font-size: 14px; font-weight: 800; color: var(--primary); margin-bottom: 12px;">
+                Node 1: Soil Moisture & Relay Controller
+            </h4>
+            
+            <div class="modal-group">
+                <label>Project Username (userName):</label>
+                <input type="text" id="cfgUsername" value="SoilMoisture" required>
+                <small>Matches the 'userName' configured in your NodeMCU firmware & APK.</small>
+            </div>
+
+            <div class="modal-group">
+                <label>NodeMCU ESP8266 MAC Address:</label>
+                <input type="text" id="cfgMacAddress" value="B4:E6:2D:30:77:55" required>
+                <small>Atharv's default ESP8266 MAC: B4:E6:2D:30:77:55</small>
+            </div>
+
+            <div class="modal-group">
+                <label>Cloud Fetch URL:</label>
+                <input type="text" id="cfgFetchUrl" value="https://www.projectiot.in/token/fetch.php" required>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--surface-border); margin: 20px 0;">
+
+            <h4 style="font-size: 14px; font-weight: 800; color: #8b5cf6; margin-bottom: 12px;">
+                Node 2: Soil pH Telegram Bot Bridge
+            </h4>
+
+            <div class="modal-group">
+                <label>Telegram Bot Token (for Phsep2026 bot):</label>
+                <input type="text" id="cfgBotToken" placeholder="Paste bot token (e.g. 123456789:ABCdefGHI...)">
+                <small>The token provided by @BotFather when creating the bot. Used to fetch latest "PH value is X.XX" message.</small>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+                <button type="button" class="btn-toggle" onclick="closeIotModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Save & Connect</button>
+            </div>
+        </form>
+    </div>
 </div>
 
+<!-- Core Application Script -->
 <script>
-    /* =====================================================================
-       CROP DATABASE & AGRONOMIC RULES
-       ===================================================================== */
+    // ---------------- State Management ----------------
+    let currentCity = "Kanpur";
+    let isFahrenheit = false;
+    let isDarkMode = false;
+    let demoStreamActive = false;
+    let demoInterval = null;
+    let telemetryPollInterval = null;
+
+    // Telemetry State
+    let telemetry = {
+        moisture: 45,
+        pump: "OFF",
+        lamp: "OFF",
+        ph: 5.40,
+        lastUpdated: "Just Now",
+        source: "Model Hotspot Node"
+    };
+
+    // Weather State
+    let weatherData = {
+        temp_c: 28,
+        humidity: 55,
+        wind_speed: 11,
+        rain_prob: 10,
+        hourly: null,
+        desc: "Clear Sky"
+    };
+
+    // Crop Agronomic Database with pH and Climate thresholds
     const CROPS = [
-        {
-            id: 'wheat',
-            name: 'Wheat',
-            emoji: '🌾',
-            type: 'rabi',
-            minTemp: 10,
-            maxTemp: 25,
-            minHumidity: 45,
-            maxHumidity: 70,
-            notes: 'Requires cool weather during vegetative growth and warm, dry sunshine during grain ripening.'
-        },
-        {
-            id: 'rice',
-            name: 'Rice (Paddy)',
-            emoji: '🍚',
-            type: 'kharif',
-            minTemp: 20,
-            maxTemp: 36,
-            minHumidity: 65,
-            maxHumidity: 95,
-            notes: 'Thrives in hot, humid climates with abundant water supply or sustained irrigation.'
-        },
-        {
-            id: 'maize',
-            name: 'Maize (Corn)',
-            emoji: '🌽',
-            type: 'kharif',
-            minTemp: 18,
-            maxTemp: 32,
-            minHumidity: 45,
-            maxHumidity: 75,
-            notes: 'Highly adaptable moderate-climate crop. Requires warm soils and good drainage.'
-        },
-        {
-            id: 'cotton',
-            name: 'Cotton',
-            emoji: '⚪',
-            type: 'cash',
-            minTemp: 21,
-            maxTemp: 35,
-            minHumidity: 40,
-            maxHumidity: 65,
-            notes: 'Warm temperature crop. Requires plenty of sunshine and dry weather during boll opening.'
-        },
-        {
-            id: 'sugarcane',
-            name: 'Sugarcane',
-            emoji: '🎋',
-            type: 'cash',
-            minTemp: 20,
-            maxTemp: 35,
-            minHumidity: 60,
-            maxHumidity: 88,
-            notes: 'Tropical long-duration crop. Heavy feeder that thrives in warm, humid tropical conditions.'
-        },
-        {
-            id: 'pulses',
-            name: 'Pulses & Gram',
-            emoji: '🫘',
-            type: 'rabi',
-            minTemp: 14,
-            maxTemp: 28,
-            minHumidity: 35,
-            maxHumidity: 65,
-            notes: 'Drought-tolerant nitrogen fixer. Sensitive to waterlogging; prefers moderate temperatures.'
-        },
-        {
-            id: 'mustard',
-            name: 'Mustard',
-            emoji: '🌻',
-            type: 'rabi',
-            minTemp: 10,
-            maxTemp: 25,
-            minHumidity: 40,
-            maxHumidity: 65,
-            notes: 'Cool season oilseed crop. Thrives in dry and cold winter weather with clear skies.'
-        },
-        {
-            id: 'potato',
-            name: 'Potato',
-            emoji: '🥔',
-            type: 'rabi',
-            minTemp: 14,
-            maxTemp: 24,
-            minHumidity: 55,
-            maxHumidity: 85,
-            notes: 'Tuber formation is severely hampered if night temperatures exceed 22°C.'
-        },
-        {
-            id: 'soybean',
-            name: 'Soybean',
-            emoji: '🫛',
-            type: 'kharif',
-            minTemp: 20,
-            maxTemp: 32,
-            minHumidity: 50,
-            maxHumidity: 75,
-            notes: 'Warm season legume. Ideal for crop rotation; requires well-drained fertile loam.'
-        }
+        { id: "wheat", name: "Wheat (गेंहू)", type: "rabi", minT: 10, maxT: 25, minH: 45, minPh: 6.0, maxPh: 7.5, notes: "Cool season winter cereal; requires bright sunshine for grain filling." },
+        { id: "rice", name: "Rice / Paddy (धान)", type: "kharif", minT: 20, maxT: 36, minH: 65, minPh: 5.5, maxPh: 7.0, notes: "High moisture and warm climate needed; tolerates slightly acidic soils." },
+        { id: "maize", name: "Maize (मक्का)", type: "kharif", minT: 18, maxT: 32, minH: 45, minPh: 5.8, maxPh: 7.2, notes: "Needs warm, well-drained fertile loam with neutral pH balance." },
+        { id: "cotton", name: "Cotton (कपास)", type: "cash", minT: 21, maxT: 35, minH: 40, minPh: 6.0, maxPh: 7.8, notes: "Cash fiber crop; tolerates mild alkalinity; needs dry weather during boll opening." },
+        { id: "sugarcane", name: "Sugarcane (गन्ना)", type: "cash", minT: 20, maxT: 35, minH: 60, minPh: 6.0, maxPh: 7.8, notes: "Heavy feeder crop; requires warm humid climate and sustained irrigation." },
+        { id: "pulses", name: "Pulses / Gram (चना / दाल)", type: "legume", minT: 14, maxT: 28, minH: 35, minPh: 6.0, maxPh: 7.5, notes: "Drought-tolerant nitrogen fixer; sensitive to acid soils (pH < 6.0 damages nodules)." },
+        { id: "mustard", name: "Mustard (सरसों)", type: "oilseed", minT: 10, maxT: 25, minH: 40, minPh: 6.0, maxPh: 7.5, notes: "Winter oilseed; thrives under dry cool sunshine; sensitive to heavy fog/frost." },
+        { id: "potato", name: "Potato (आलू)", type: "rabi", minT: 14, maxT: 24, minH: 55, minPh: 5.0, maxPh: 6.5, notes: "Prefers slightly acidic soil (pH 5.2-6.2 prevents potato scab); tuberization halts >24°C." },
+        { id: "soybean", name: "Soybean (सोयाबीन)", type: "legume", minT: 20, maxT: 32, minH: 50, minPh: 6.0, maxPh: 7.0, notes: "Warm season legume; ideal for crop rotation and replenishing soil fertility." }
     ];
 
-    /* =====================================================================
-       APP STATE
-       ===================================================================== */
-    let currentWeatherData = null;
-    let isFahrenheit = false;
-    let currentFilter = 'all';
-    let currentBgMode = 'custom'; // 'custom', 'dynamic', 'dark'
-    const OPENWEATHER_API_KEY = localStorage.getItem('OWM_API_KEY') || "";
-
-    /* =====================================================================
-       INITIALIZATION
-       ===================================================================== */
+    // ---------------- Initialization ----------------
     window.addEventListener('DOMContentLoaded', () => {
-        // Automatic night mode detection
-        const hour = new Date().getHours();
-        if (hour >= 19 || hour <= 5) {
-            document.body.classList.add('dark-theme');
-            document.getElementById('themeText').innerText = 'Light Mode';
-        }
-
-        // Try geolocation or load default city
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                pos => fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude),
-                err => {
-                    console.log('Geolocation denied or unavailable, loading default city:', err);
-                    searchCity('Delhi');
-                },
-                { timeout: 7000 }
-            );
-        } else {
-            searchCity('Delhi');
-        }
+        loadSavedSettings();
+        searchCity(currentCity);
+        renderPhPrescription(telemetry.ph);
+        startTelemetryPolling();
+        registerServiceWorker();
     });
 
-    /* =====================================================================
-       SEARCH & WEATHER FETCHING LOGIC
-       ===================================================================== */
-    function handleSearch(e) {
+    function loadSavedSettings() {
+        const u = localStorage.getItem("cfg_username");
+        const m = localStorage.getItem("cfg_mac");
+        const t = localStorage.getItem("cfg_bot_token");
+        if (u) document.getElementById("cfgUsername").value = u;
+        if (m) document.getElementById("cfgMacAddress").value = m;
+        if (t) document.getElementById("cfgBotToken").value = t;
+    }
+
+    function saveIotSettings(e) {
         e.preventDefault();
-        const city = document.getElementById('cityInput').value.trim();
-        if (city) {
-            searchCity(city);
+        const u = document.getElementById("cfgUsername").value.trim();
+        const m = document.getElementById("cfgMacAddress").value.trim();
+        const f = document.getElementById("cfgFetchUrl").value.trim();
+        const t = document.getElementById("cfgBotToken").value.trim();
+
+        localStorage.setItem("cfg_username", u);
+        localStorage.setItem("cfg_mac", m);
+        localStorage.setItem("cfg_fetch_url", f);
+        localStorage.setItem("cfg_bot_token", t);
+
+        closeIotModal();
+        pollAllTelemetry();
+        alert("IoT Hardware & Telegram settings saved successfully!");
+    }
+
+    function openIotModal() { document.getElementById("iotModal").classList.add("active"); }
+    function closeIotModal() { document.getElementById("iotModal").classList.remove("active"); }
+
+    // ---------------- Telemetry Ingestion (Node 1 & Telegram Node 2) ----------------
+    function startTelemetryPolling() {
+        pollAllTelemetry();
+        if (telemetryPollInterval) clearInterval(telemetryPollInterval);
+        telemetryPollInterval = setInterval(pollAllTelemetry, 10000); // 10s poll
+    }
+
+    async function pollAllTelemetry() {
+        if (demoStreamActive) return; // Skip if demo stream is active
+
+        const username = localStorage.getItem("cfg_username") || "SoilMoisture";
+        const mac = localStorage.getItem("cfg_mac") || "B4:E6:2D:30:77:55";
+        const fetchUrl = localStorage.getItem("cfg_fetch_url") || "https://www.projectiot.in/token/fetch.php";
+        const botToken = localStorage.getItem("cfg_bot_token") || "";
+
+        // 1. Fetch Node 1 (Soil Moisture, Pump, Lamp) from projectiot.in
+        try {
+            const url = `${fetchUrl}?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`;
+            const response = await fetch(url, { cache: "no-store" });
+            if (response.ok) {
+                const text = await response.text();
+                const parts = text.split(',');
+                if (parts.length >= 4) {
+                    telemetry.lamp = parts[0].trim();
+                    telemetry.moisture = parseFloat(parts[1]) || 0;
+                    telemetry.pump = parts[2].trim();
+                    telemetry.lastUpdated = parts[3].trim();
+                }
+            }
+        } catch (e) {
+            console.log("Direct IoT fetch note (CORS or server offline, retaining latest state)");
+        }
+
+        // 2. Fetch Node 2 (Soil pH) from Telegram Bot API
+        if (botToken) {
+            try {
+                const tgUrl = `https://api.telegram.org/bot${botToken}/getUpdates?offset=-1`;
+                const tgRes = await fetch(tgUrl);
+                const tgData = await tgRes.json();
+                if (tgData.ok && tgData.result.length > 0) {
+                    const latestMsg = tgData.result[0].message.text;
+                    const match = latestMsg.match(/([0-9]+\.[0-9]+)/);
+                    if (match) {
+                        telemetry.ph = parseFloat(match[1]);
+                        document.getElementById("phSourceText").innerText = "Telegram: " + latestMsg;
+                    }
+                }
+            } catch (err) {
+                console.log("Telegram fetch note:", err);
+            }
+        }
+
+        updateTelemetryUI();
+        renderPhPrescription(telemetry.ph);
+        updateSmartAdvisories();
+        renderCropMatrix();
+    }
+
+    function updateTelemetryUI() {
+        // Moisture
+        document.getElementById("moistVal").innerText = Math.round(telemetry.moisture);
+        document.getElementById("moistBar").style.width = Math.min(100, Math.max(0, telemetry.moisture)) + "%";
+        const moistStatus = document.getElementById("moistStatusText");
+        if (telemetry.moisture < 30) {
+            moistStatus.innerText = "Dry (Needs Irrigation)";
+            moistStatus.style.color = "#ef4444";
+        } else if (telemetry.moisture <= 75) {
+            moistStatus.innerText = "Optimal Hydration";
+            moistStatus.style.color = "#10b981";
+        } else {
+            moistStatus.innerText = "Saturated / Wet";
+            moistStatus.style.color = "#0284c7";
+        }
+
+        // Pump
+        document.getElementById("pumpVal").innerText = telemetry.pump;
+        const pumpBadge = document.getElementById("pumpBadge");
+        if (telemetry.pump === "ON") {
+            pumpBadge.className = "telemetry-badge badge-on";
+            pumpBadge.innerHTML = '<i class="fa-solid fa-circle-play"></i> Pump Running';
+        } else {
+            pumpBadge.className = "telemetry-badge badge-off";
+            pumpBadge.innerHTML = '<i class="fa-solid fa-power-off"></i> Relay Inactive';
+        }
+
+        // Lamp
+        document.getElementById("lampVal").innerText = telemetry.lamp;
+        const lampBadge = document.getElementById("lampBadge");
+        if (telemetry.lamp === "ON") {
+            lampBadge.className = "telemetry-badge badge-lamp-on";
+            lampBadge.innerHTML = '<i class="fa-solid fa-lightbulb"></i> Lamp Glowing';
+        } else {
+            lampBadge.className = "telemetry-badge badge-off";
+            lampBadge.innerHTML = '<i class="fa-solid fa-moon"></i> Daytime Idle';
+        }
+
+        // pH
+        document.getElementById("phValDisplay").innerText = telemetry.ph.toFixed(2);
+        const phBadge = document.getElementById("phBadge");
+        if (telemetry.ph < 6.0) {
+            phBadge.style.background = "#fee2e2"; phBadge.style.color = "#dc2626";
+            phBadge.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Acidic Soil';
+        } else if (telemetry.ph <= 7.5) {
+            phBadge.style.background = "#dcfce7"; phBadge.style.color = "#16a34a";
+            phBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Balanced / Neutral';
+        } else {
+            phBadge.style.background = "#fef3c7"; phBadge.style.color = "#d97706";
+            phBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Alkaline Soil';
+        }
+
+        document.getElementById("iotLastUpdated").innerText = "Last Synced: " + telemetry.lastUpdated;
+    }
+
+    // Demo Mode Stream Toggle
+    function toggleDemoStream() {
+        demoStreamActive = !demoStreamActive;
+        const btn = document.getElementById("demoToggleText");
+        if (demoStreamActive) {
+            btn.innerText = "Demo Stream: ON (Active)";
+            document.getElementById("headerIotStatus").innerText = "Demo Simulation";
+            // Simulate changing hardware values
+            demoInterval = setInterval(() => {
+                telemetry.moisture = Math.round(25 + Math.random() * 45);
+                telemetry.pump = telemetry.moisture < 30 ? "ON" : "OFF";
+                telemetry.lamp = Math.random() > 0.5 ? "ON" : "OFF";
+                telemetry.ph = parseFloat((5.2 + Math.random() * 2.6).toFixed(2));
+                telemetry.lastUpdated = new Date().toLocaleTimeString();
+                updateTelemetryUI();
+                renderPhPrescription(telemetry.ph);
+                document.getElementById("phManualSlider").value = telemetry.ph;
+                updateSmartAdvisories();
+                renderCropMatrix();
+            }, 3500);
+        } else {
+            btn.innerText = "Demo Stream: OFF";
+            document.getElementById("headerIotStatus").innerText = "Hardware Live";
+            if (demoInterval) clearInterval(demoInterval);
+            pollAllTelemetry();
         }
     }
 
-    function searchCity(city) {
-        showLoader(true);
-        // Primary: Open-Meteo Geocoding (no API key needed, zero CORS restriction, global)
-        const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
-
-        fetch(geocodeUrl)
-            .then(res => res.json())
-            .then(data => {
-                if (data.results && data.results.length > 0) {
-                    const loc = data.results[0];
-                    const displayName = `${loc.name}${loc.admin1 ? ', ' + loc.admin1 : ''}, ${loc.country || ''}`;
-                    fetchWeatherByCoords(loc.latitude, loc.longitude, displayName);
-                } else if (OPENWEATHER_API_KEY) {
-                    // Fallback to OpenWeatherMap API if custom key exists
-                    fetchOpenWeatherMap(city);
-                } else {
-                    showLoader(false);
-                    alert(`Could not find location for "${city}". Please check the spelling.`);
-                }
-            })
-            .catch(err => {
-                if (OPENWEATHER_API_KEY) {
-                    fetchOpenWeatherMap(city);
-                } else {
-                    showLoader(false);
-                    alert(`Could not fetch weather data for "${city}". Please try again.`);
-                }
-            });
+    // ---------------- Soil pH Prescription Engine ----------------
+    function onManualPhChange(val) {
+        const ph = parseFloat(val);
+        telemetry.ph = ph;
+        document.getElementById("phValDisplay").innerText = ph.toFixed(2);
+        renderPhPrescription(ph);
+        renderCropMatrix();
     }
 
-    function fetchOpenWeatherMap(city) {
-        if (!OPENWEATHER_API_KEY) return;
-        const owmUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OPENWEATHER_API_KEY}&units=metric`;
-        fetch(owmUrl)
-            .then(res => {
-                if (!res.ok) throw new Error('City not found or API limit reached');
-                return res.json();
-            })
-            .then(data => {
-                processOwmData(data);
-                showLoader(false);
-            })
-            .catch(err => {
-                showLoader(false);
-                alert(`Could not find weather data for "${city}". Please check spelling.`);
-            });
+    function renderPhPrescription(ph) {
+        document.getElementById("rxCurrentPh").innerText = ph.toFixed(2);
+        const title = document.getElementById("rxCategoryTitle");
+        const remedy = document.getElementById("rxRemedyTitle");
+        const dosage = document.getElementById("rxDosageText");
+        const organic = document.getElementById("rxOrganicTitle");
+        const orgDesc = document.getElementById("rxOrganicDesc");
+        const method = document.getElementById("rxMethodDesc");
+        const lockout = document.getElementById("rxLockoutTitle");
+        const lockDesc = document.getElementById("rxLockoutDesc");
+
+        if (ph < 5.0) {
+            title.innerText = `Strongly Acidic Soil (pH ${ph.toFixed(2)}) – अत्यधिक अम्लीय`;
+            title.style.color = "#dc2626";
+            remedy.innerText = "Agricultural Limestone (CaCO3) / Slaked Lime";
+            dosage.innerHTML = "<strong>Recommended Dosage:</strong> 300 – 350 g/m² (approx. 1,200 kg per acre).";
+            organic.innerText = "Hardwood Ash & Poultry Manure";
+            orgDesc.innerText = "Apply wood ash @ 150 g/m² with deep vermicompost to lift pH and add potassium.";
+            method.innerText = "Broadcast lime 4 weeks before sowing. Rotavate to 15 cm soil depth and irrigate.";
+            lockout.innerText = "Severe Phosphorus & Magnesium Lockout";
+            lockDesc.innerText = "Aluminum toxicity hazard. Plants will suffer stunted roots and purpling leaves.";
+        } else if (ph < 6.0) {
+            title.innerText = `Moderately Acidic Soil (pH ${ph.toFixed(2)}) – मध्यम अम्लीय`;
+            title.style.color = "#ea580c";
+            remedy.innerText = "Dolomitic Limestone (CaCO3 + MgCO3)";
+            dosage.innerHTML = "<strong>Recommended Dosage:</strong> 150 – 200 g/m² (approx. 600 - 800 kg per acre).";
+            organic.innerText = "Compost & Bio-Fertilizers";
+            orgDesc.innerText = "Apply well-decomposed cow dung manure and PSB (Phosphorus Solubilizing Bacteria).";
+            method.innerText = "Apply during land preparation prior to pre-sowing irrigation.";
+            lockout.innerText = "Slight Nitrogen Fixation Deficiency";
+            lockDesc.innerText = "Rhizobium bacteria efficiency in legume nodules is lowered. Suitable for Potato & Rice.";
+        } else if (ph <= 7.5) {
+            title.innerText = `Optimal & Balanced Soil (pH ${ph.toFixed(2)}) – संतुलित / आदर्श`;
+            title.style.color = "#16a34a";
+            remedy.innerText = "Soil is Ideal – No Chemical Neutralizer Needed";
+            dosage.innerHTML = "<strong>Recommended Dosage:</strong> 0 kg chemical neutralizers.";
+            organic.innerText = "Green Manuring & Mulching";
+            orgDesc.innerText = "Maintain organic carbon with Dhaincha/Sunhemp green manure and crop residue.";
+            method.innerText = "Standard farming practices. Avoid over-applying acidic ammonium fertilizers.";
+            lockout.innerText = "Maximum Nutrient Bioavailability";
+            lockDesc.innerText = "All major N-P-K elements and micronutrients are readily soluble and absorbable.";
+        } else if (ph <= 8.5) {
+            title.innerText = `Moderately Alkaline Soil (pH ${ph.toFixed(2)}) – मध्यम क्षारीय`;
+            title.style.color = "#ca8a04";
+            remedy.innerText = "Agricultural Gypsum (Calcium Sulfate - CaSO4·2H2O)";
+            dosage.innerHTML = "<strong>Recommended Dosage:</strong> 200 – 250 g/m² (approx. 800 - 1,000 kg per acre).";
+            organic.innerText = "Press Mud & Organic FYM";
+            orgDesc.innerText = "Apply sugar mill press mud or farmyard manure to release organic neutralizing acids.";
+            method.innerText = "Broadcast gypsum into moist soil; Calcium displaces harmful sodium on clay particles.";
+            lockout.innerText = "Zinc (Zn) & Iron (Fe) Chlorosis Risk";
+            lockDesc.innerText = "High pH precipitates micronutrients into insoluble forms, causing leaf yellowing.";
+        } else {
+            title.innerText = `Strongly Alkaline / Sodic Soil (pH ${ph.toFixed(2)}) – ऊसर / क्षारीय भूमि`;
+            title.style.color = "#b91c1c";
+            remedy.innerText = "Elemental Sulfur or Iron Pyrite (FeS2) + Heavy Leaching";
+            dosage.innerHTML = "<strong>Recommended Dosage:</strong> 100 – 150 g/m² Sulfur (approx. 400 - 600 kg per acre).";
+            organic.innerText = "Sesbania (ढैंचा) Green Manure";
+            orgDesc.innerText = "Grow Sesbania, incorporate before flowering, and flood field for deep saline leaching.";
+            method.innerText = "Apply ground sulfur; soil Thiobacillus bacteria oxidize it to sulfuric acid over 4-6 weeks.";
+            lockout.innerText = "High Salinity & Sodium Toxicity";
+            lockDesc.innerText = "Soil structure collapses into hard crusts. Roots suffer osmotic dehydration.";
+        }
+    }
+
+    // ---------------- Weather Data & Open-Meteo Integration ----------------
+    function handleSearch(e) {
+        e.preventDefault();
+        const city = document.getElementById("cityInput").value.trim();
+        if (city) searchCity(city);
+    }
+
+    async function searchCity(city) {
+        currentCity = city;
+        document.getElementById("displayCity").innerText = city + " (Fetching...)";
+
+        try {
+            // Geocoding
+            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+            const geoData = await geoRes.json();
+            if (!geoData.results || geoData.results.length === 0) {
+                alert(`Location "${city}" not found.`);
+                return;
+            }
+            const loc = geoData.results[0];
+            const lat = loc.latitude;
+            const lon = loc.longitude;
+            document.getElementById("displayCity").innerText = `${loc.name}, ${loc.country || ""}`;
+
+            // Weather & Hourly Forecast
+            const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,wind_speed_10m&timezone=auto`;
+            const wRes = await fetch(weatherUrl);
+            const wData = await wRes.json();
+
+            weatherData.temp_c = Math.round(wData.current.temperature_2m);
+            weatherData.humidity = Math.round(wData.current.relative_humidity_2m);
+            weatherData.wind_speed = Math.round(wData.current.wind_speed_10m);
+            weatherData.hourly = wData.hourly;
+
+            // Extract rain probability for next 12h
+            if (wData.hourly && wData.hourly.precipitation_probability) {
+                weatherData.rain_prob = Math.max(...wData.hourly.precipitation_probability.slice(0, 12));
+            }
+
+            renderWeatherUI();
+            updateSmartAdvisories();
+            renderCropMatrix();
+        } catch (err) {
+            console.error("Weather fetch error:", err);
+            document.getElementById("displayCity").innerText = city;
+        }
     }
 
     function fetchByCurrentLocation() {
         if (!navigator.geolocation) {
-            alert('Geolocation is not supported by your browser.');
+            alert("Geolocation is not supported by your browser.");
             return;
         }
-        showLoader(true);
-        navigator.geolocation.getCurrentPosition(
-            pos => fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude),
-            err => {
-                showLoader(false);
-                alert('Location permission denied. Please enter a city manually.');
-            },
-            { timeout: 10000 }
-        );
+        document.getElementById("displayCity").innerText = "Detecting GPS Location...";
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            try {
+                const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${lat.toFixed(2)},${lon.toFixed(2)}&count=1&language=en&format=json`);
+                searchCity(`${lat.toFixed(2)}, ${lon.toFixed(2)}`);
+            } catch (e) {
+                searchCity("Kanpur");
+            }
+        }, () => {
+            alert("Could not access your location. Searching Kanpur...");
+            searchCity("Kanpur");
+        });
     }
 
-    function fetchWeatherByCoords(lat, lon, customName = null) {
-        showLoader(true);
-        // Open-Meteo Forecast API: Fast, reliable, 100% free
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+    function renderWeatherUI() {
+        const displayTemp = isFahrenheit ? Math.round((weatherData.temp_c * 9/5) + 32) + "°F" : weatherData.temp_c + "°C";
+        const feelsLike = isFahrenheit ? Math.round(((weatherData.temp_c + 1) * 9/5) + 32) + "°F" : (weatherData.temp_c + 1) + "°C";
 
-        fetch(weatherUrl)
-            .then(res => res.json())
-            .then(data => {
-                if (customName) {
-                    processOpenMeteoData(data, customName);
-                    showLoader(false);
-                } else {
-                    // Reverse geocode to find friendly name
-                    fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${lat.toFixed(2)},${lon.toFixed(2)}&count=1`)
-                        .catch(() => null)
-                        .then(() => {
-                            const name = customName || `Location (${lat.toFixed(2)}°, ${lon.toFixed(2)}°)`;
-                            processOpenMeteoData(data, name);
-                            showLoader(false);
-                        });
-                }
-            })
-            .catch(err => {
-                console.error('Weather fetch error:', err);
-                showLoader(false);
-                alert('Failed to fetch live weather data. Please try again.');
-            });
+        document.getElementById("tempDisplay").innerText = displayTemp;
+        document.getElementById("feelsLikeDisplay").innerText = feelsLike;
+        document.getElementById("humidityDisplay").innerText = weatherData.humidity + "%";
+        document.getElementById("windDisplay").innerText = weatherData.wind_speed + " km/h";
+        document.getElementById("rainProbDisplay").innerText = weatherData.rain_prob + "%";
+
+        // Evaporation index
+        const evap = (weatherData.temp_c > 32 && weatherData.humidity < 40) ? "High (Fast Dryout)" : (weatherData.humidity > 70 ? "Low (Slow Drying)" : "Moderate");
+        document.getElementById("evapDisplay").innerText = evap;
+        document.getElementById("weatherSyncTime").innerText = "Live Forecast • " + new Date().toLocaleTimeString();
     }
 
-    /* =====================================================================
-       DATA PROCESSING & UI UPDATES
-       ===================================================================== */
-    function processOpenMeteoData(data, locationName) {
-        const cur = data.current;
-        const daily = data.daily || {};
-        const weatherInfo = mapWmoCode(cur.weather_code);
+    // ---------------- Precision Next-Day Farming Advisories ----------------
+    function updateSmartAdvisories() {
+        if (!weatherData.hourly) return;
 
-        currentWeatherData = {
-            city: locationName,
-            temp: cur.temperature_2m,
-            feelsLike: cur.apparent_temperature,
-            humidity: cur.relative_humidity_2m,
-            windSpeed: cur.wind_speed_10m,
-            pressure: Math.round(cur.surface_pressure || 1013),
-            minTemp: daily.temperature_2m_min ? daily.temperature_2m_min[0] : Math.round(cur.temperature_2m - 4),
-            maxTemp: daily.temperature_2m_max ? daily.temperature_2m_max[0] : Math.round(cur.temperature_2m + 5),
-            condition: weatherInfo.label,
-            icon: weatherInfo.icon,
-            conditionCategory: weatherInfo.category
-        };
+        const next24RainProbs = weatherData.hourly.precipitation_probability ? weatherData.hourly.precipitation_probability.slice(0, 24) : [];
+        const next24Rains = weatherData.hourly.precipitation ? weatherData.hourly.precipitation.slice(0, 24) : [];
+        const next24Winds = weatherData.hourly.wind_speed_10m ? weatherData.hourly.wind_speed_10m.slice(0, 24) : [];
 
-        renderWeather();
-    }
+        const maxRainProb = next24RainProbs.length ? Math.max(...next24RainProbs) : 10;
+        const totalRain = next24Rains.length ? next24Rains.reduce((a, b) => a + b, 0) : 0;
+        const maxWind = next24Winds.length ? Math.max(...next24Winds) : 10;
 
-    function processOwmData(data) {
-        const cond = data.weather[0];
-        currentWeatherData = {
-            city: `${data.name}, ${data.sys ? data.sys.country : ''}`,
-            temp: data.main.temp,
-            feelsLike: data.main.feels_like,
-            humidity: data.main.humidity,
-            windSpeed: Math.round(data.wind.speed * 3.6), // convert m/s to km/h
-            pressure: data.main.pressure,
-            minTemp: data.main.temp_min,
-            maxTemp: data.main.temp_max,
-            condition: cond.description,
-            icon: mapOwmIcon(cond.icon),
-            conditionCategory: mapOwmCategory(cond.main)
-        };
+        // 1. Fertilizer Spraying Advisory
+        const sprayBadge = document.getElementById("sprayBadge");
+        const sprayTitle = document.getElementById("sprayTitle");
+        const sprayBody = document.getElementById("sprayBody");
 
-        renderWeather();
-    }
-
-    function renderWeather() {
-        if (!currentWeatherData) return;
-        const d = currentWeatherData;
-
-        document.getElementById('displayCity').innerText = d.city;
-        document.getElementById('lastUpdated').innerText = `Updated at ${new Date().toLocaleTimeString()} • Live data feed`;
-
-        const displayTemp = isFahrenheit ? (d.temp * 9/5 + 32).toFixed(1) + '°F' : d.temp.toFixed(1) + '°C';
-        const displayFeels = isFahrenheit ? (d.feelsLike * 9/5 + 32).toFixed(1) + '°F' : d.feelsLike.toFixed(1) + '°C';
-        const displayMin = isFahrenheit ? (d.minTemp * 9/5 + 32).toFixed(0) : d.minTemp.toFixed(0);
-        const displayMax = isFahrenheit ? (d.maxTemp * 9/5 + 32).toFixed(0) : d.maxTemp.toFixed(0);
-        const unit = isFahrenheit ? '°F' : '°C';
-
-        document.getElementById('tempDisplay').innerText = displayTemp;
-        document.getElementById('feelsLikeDisplay').innerText = displayFeels;
-        document.getElementById('minMaxDisplay').innerText = `${displayMin}${unit} / ${displayMax}${unit}`;
-        document.getElementById('humidityDisplay').innerText = `${d.humidity}%`;
-        document.getElementById('windDisplay').innerText = `${d.windSpeed} km/h`;
-        document.getElementById('pressureDisplay').innerText = `${d.pressure} hPa`;
-
-        document.getElementById('weatherIcon').innerText = d.icon;
-        document.getElementById('weatherDesc').innerText = d.condition;
-
-        // Render Alerts
-        renderAlerts(d.temp, d.humidity, d.windSpeed);
-
-        // Render Agricultural Climate Index
-        renderAgriIndex(d.temp, d.humidity);
-
-        // Render Crop Advisory
-        renderCrops(d.temp, d.humidity);
-
-        // Update Dynamic Background if active
-        if (currentBgMode === 'dynamic') {
-            applyDynamicBackground(d.conditionCategory);
-        }
-    }
-
-    /* =====================================================================
-       ALERTS & AGRI CLIMATE INDEX
-       ===================================================================== */
-    function renderAlerts(temp, humidity, wind) {
-        const container = document.getElementById('alertsContainer');
-        const alerts = [];
-
-        if (temp >= 40) {
-            alerts.push({
-                type: 'danger',
-                icon: 'fa-fire',
-                title: `🔥 Extreme Heatwave Alert (${temp.toFixed(1)}°C)`,
-                desc: 'Severe heat stress. High evapotranspiration rate. Irrigate standing crops in early morning or late dusk to prevent wilting.'
-            });
-        } else if (temp <= 4) {
-            alerts.push({
-                type: 'danger',
-                icon: 'fa-snowflake',
-                title: `❄ Ground Frost / Cold Stress Warning (${temp.toFixed(1)}°C)`,
-                desc: 'Risk of cell freeze in sensitive crops (potato, mustard, vegetables). Provide light evening irrigation or straw mulching.'
-            });
-        }
-
-        if (humidity >= 85 && temp >= 22) {
-            alerts.push({
-                type: 'warning',
-                icon: 'fa-triangle-exclamation',
-                title: `💧 High Humidity & Fungal Disease Risk (${humidity}%)`,
-                desc: 'Warm and saturated air creates prime breeding conditions for blight, rust, downy mildew, and aphid infestations. Monitor foliage closely.'
-            });
-        }
-
-        if (wind >= 32) {
-            alerts.push({
-                type: 'warning',
-                icon: 'fa-wind',
-                title: `💨 Strong Wind Advisory (${wind} km/h)`,
-                desc: 'Strong winds can cause lodging (stalk breakage) in tall crops such as sugarcane and maize. Postpone chemical foliar spraying.'
-            });
-        }
-
-        if (alerts.length > 0) {
-            container.style.display = 'block';
-            container.innerHTML = alerts.map(a => `
-                <div class="alert-card ${a.type === 'warning' ? 'warning' : ''}">
-                    <i class="fa-solid ${a.icon}" style="font-size: 20px;"></i>
-                    <div>
-                        <div style="font-size: 14px; font-weight: 700;">${a.title}</div>
-                        <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">${a.desc}</div>
-                    </div>
-                </div>
-            `).join('');
+        if (maxRainProb > 40 || totalRain > 2.0) {
+            sprayBadge.className = "advisory-badge badge-delay";
+            sprayBadge.innerText = "DELAY SPRAYING";
+            sprayTitle.innerText = "Do Not Spray Fertilizer Tomorrow";
+            sprayBody.innerText = `Rain likelihood is ${maxRainProb}% (${totalRain.toFixed(1)} mm predicted). Rain will wash away costly urea and foliar spray into runoff.`;
+        } else if (maxWind > 18) {
+            sprayBadge.className = "advisory-badge badge-caution";
+            sprayBadge.innerText = "WIND CAUTION";
+            sprayTitle.innerText = "High Wind Drift Alert";
+            sprayBody.innerText = `Wind gusts will reach ${maxWind.toFixed(1)} km/h tomorrow. Chemical drift will miss target crop foliage and blow onto neighboring land.`;
         } else {
-            container.style.display = 'none';
-            container.innerHTML = '';
-        }
-    }
-
-    function renderAgriIndex(temp, humidity) {
-        const humidityBar = document.getElementById('humidityBar');
-        const humidityText = document.getElementById('humidityBarText');
-        const thermalBar = document.getElementById('thermalBar');
-        const thermalText = document.getElementById('thermalBarText');
-        const ratingBadge = document.getElementById('agriRatingBadge');
-        const summaryText = document.getElementById('agriSummaryText');
-
-        // Humidity bar
-        humidityBar.style.width = `${Math.min(100, Math.max(10, humidity))}%`;
-        if (humidity >= 50 && humidity <= 75) {
-            humidityText.innerText = `${humidity}% (Optimal for most crops)`;
-            humidityBar.className = 'indicator-bar-fill bar-green';
-        } else if (humidity < 50) {
-            humidityText.innerText = `${humidity}% (Dry – Irrigation required)`;
-            humidityBar.className = 'indicator-bar-fill bar-amber';
-        } else {
-            humidityText.innerText = `${humidity}% (Saturated – Fungal risk)`;
-            humidityBar.className = 'indicator-bar-fill bar-blue';
+            sprayBadge.className = "advisory-badge badge-optimal";
+            sprayBadge.innerText = "OPTIMAL WINDOW";
+            sprayTitle.innerText = "Ideal for Fertilizer & Pesticide Spray";
+            sprayBody.innerText = "Clear conditions and calm breeze (<15 km/h) forecasted. Best application hours: 7:00 AM – 10:00 AM.";
         }
 
-        // Thermal comfort
-        let thermalScore = 50;
-        if (temp >= 18 && temp <= 28) {
-            thermalScore = 95;
-            thermalText.innerText = `${temp.toFixed(1)}°C (Ideal vegetative window)`;
-            thermalBar.className = 'indicator-bar-fill bar-green';
-            ratingBadge.innerText = '🟢 Favorable Growing Conditions';
-            ratingBadge.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-            summaryText.innerText = `Current temperature (${temp.toFixed(1)}°C) and humidity (${humidity}%) present a robust, productive physiological window for warm-season cereals, legumes, and cash crops.`;
-        } else if (temp >= 10 && temp < 18) {
-            thermalScore = 75;
-            thermalText.innerText = `${temp.toFixed(1)}°C (Cool Rabi season window)`;
-            thermalBar.className = 'indicator-bar-fill bar-blue';
-            ratingBadge.innerText = '🌱 Excellent for Rabi Crops';
-            ratingBadge.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
-            summaryText.innerText = `Cool ambient temperature (${temp.toFixed(1)}°C) supports winter wheat, mustard, pulses, and potato tuberization with reduced thermal stress.`;
-        } else if (temp > 28 && temp <= 36) {
-            thermalScore = 70;
-            thermalText.innerText = `${temp.toFixed(1)}°C (Warm summer / tropical window)`;
-            thermalBar.className = 'indicator-bar-fill bar-amber';
-            ratingBadge.innerText = '🌾 Moderate / High Evaporation';
-            ratingBadge.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
-            summaryText.innerText = `Elevated heat requires scheduled watering. Ideal for paddy (with standing water), cotton, and tropical sugarcane.`;
-        } else {
-            thermalScore = 30;
-            thermalText.innerText = `${temp.toFixed(1)}°C (Thermal Stress Zone)`;
-            thermalBar.className = 'indicator-bar-fill bar-amber';
-            ratingBadge.innerText = '⚠ Severe Thermal Stress';
-            ratingBadge.style.background = 'linear-gradient(135deg, #ef4444, #b91c1c)';
-            summaryText.innerText = `Extreme temperatures (${temp.toFixed(1)}°C) retard plant cell elongation. Protect seedlings and preserve soil moisture through mulch.`;
-        }
-        thermalBar.style.width = `${thermalScore}%`;
-    }
+        // 2. Smart Irrigation Coordination with Hardware Soil Sensor
+        const irrigBadge = document.getElementById("irrigBadge");
+        const irrigTitle = document.getElementById("irrigTitle");
+        const irrigBody = document.getElementById("irrigBody");
 
-    /* =====================================================================
-       CROP EVALUATION ENGINE
-       ===================================================================== */
-    function renderCrops(temp, humidity) {
-        const grid = document.getElementById('cropsGrid');
-        grid.innerHTML = '';
-
-        CROPS.forEach(crop => {
-            // Suitability logic
-            const tempOk = (temp >= crop.minTemp && temp <= crop.maxTemp);
-            const humidityOk = (humidity >= crop.minHumidity && humidity <= crop.maxHumidity);
-
-            let status = '';
-            let statusClass = '';
-            let statusText = '';
-            let advice = '';
-
-            if (tempOk && humidityOk) {
-                status = 'optimal';
-                statusClass = 'status-optimal';
-                statusText = 'Optimal Climate';
-                advice = `🟢 Prime growing conditions: Current temperature (${temp.toFixed(1)}°C) and moisture (${humidity}%) closely match physiological requirements. ${crop.notes}`;
-            } else if (tempOk) {
-                status = 'moderate';
-                statusClass = 'status-moderate';
-                statusText = 'Moderate (Moisture Gap)';
-                if (humidity < crop.minHumidity) {
-                    advice = `🟡 Temperature is suitable (${temp.toFixed(1)}°C), but atmospheric humidity is lower than ideal. Provide supplemental drip/furrow irrigation.`;
-                } else {
-                    advice = `🟡 Temperature is suitable (${temp.toFixed(1)}°C), but high humidity (${humidity}%) requires proactive disease and rust monitoring.`;
-                }
+        if (telemetry.moisture < 30) {
+            if (totalRain > 8.0) {
+                irrigBadge.className = "advisory-badge badge-info";
+                irrigBadge.innerText = "HOLD PUMP";
+                irrigTitle.innerText = "Hold Irrigation – Rain Incoming";
+                irrigBody.innerText = `Soil is dry (${telemetry.moisture}%), but ${totalRain.toFixed(1)} mm of rain is predicted tomorrow. Conserve electricity and prevent waterlogging.`;
             } else {
-                status = 'poor';
-                statusClass = 'status-poor';
-                statusText = 'Not Recommended';
-                if (temp < crop.minTemp) {
-                    advice = `🔴 Too cold for ${crop.name} (requires at least ${crop.minTemp}°C, currently ${temp.toFixed(1)}°C). Risk of stunted vegetative growth.`;
-                } else {
-                    advice = `🔴 Too warm for ${crop.name} (tolerates up to ${crop.maxTemp}°C, currently ${temp.toFixed(1)}°C). High risk of flower drop and thermal distress.`;
-                }
+                irrigBadge.className = "advisory-badge badge-caution";
+                irrigBadge.innerText = "IRRIGATE NOW";
+                irrigTitle.innerText = "Run Irrigation Water Pump";
+                irrigBody.innerText = `Soil moisture is low (${telemetry.moisture}%) and no natural rainfall expected. Switch ON pump to avoid vegetative wilting.`;
+            }
+        } else if (telemetry.moisture > 75) {
+            irrigBadge.className = "advisory-badge badge-info";
+            irrigBadge.innerText = "SATURATED";
+            irrigTitle.innerText = "Soil Saturated – Check Drainage";
+            irrigBody.innerText = `Soil moisture is at ${telemetry.moisture}%. Keep field drainage channels clear to prevent root hypoxia.`;
+        } else {
+            irrigBadge.className = "advisory-badge badge-optimal";
+            irrigBadge.innerText = "BALANCED";
+            irrigTitle.innerText = "Soil Moisture Optimal";
+            irrigBody.innerText = `Current moisture (${telemetry.moisture}%) is well within root-zone comfort. No additional pumping required tomorrow.`;
+        }
+
+        // 3. Pest & Fungal Risk
+        const pestBadge = document.getElementById("pestBadge");
+        const pestTitle = document.getElementById("pestTitle");
+        const pestBody = document.getElementById("pestBody");
+
+        if (weatherData.humidity > 80 && weatherData.temp_c > 18) {
+            pestBadge.className = "advisory-badge badge-delay";
+            pestBadge.innerText = "HIGH RISK";
+            pestTitle.innerText = "High Fungal Blight Risk";
+            pestBody.innerText = "High atmospheric humidity (>80%) creates favorable conditions for fungal spores. Inspect undersides of leaves and consider preventive bio-fungicide.";
+        } else {
+            pestBadge.className = "advisory-badge badge-optimal";
+            pestBadge.innerText = "LOW RISK";
+            pestTitle.innerText = "Low Fungal Spore Threat";
+            pestBody.innerText = "Dry and moderate humidity levels inhibit rapid fungal spore germination.";
+        }
+
+        // 4. Thermal Stress
+        const thermalBadge = document.getElementById("thermalBadge");
+        const thermalTitle = document.getElementById("thermalTitle");
+        const thermalBody = document.getElementById("thermalBody");
+
+        if (weatherData.temp_c >= 40) {
+            thermalBadge.className = "advisory-badge badge-delay";
+            thermalBadge.innerText = "HEATWAVE";
+            thermalTitle.innerText = "Severe Heat Stress Alert";
+            thermalBody.innerText = "Daytime heat exceeds 40°C. Irrigate early in the morning to prevent severe plant transpiration shock.";
+        } else if (weatherData.temp_c <= 4) {
+            thermalBadge.className = "advisory-badge badge-delay";
+            thermalBadge.innerText = "FROST ALERT";
+            thermalTitle.innerText = "Ground Frost Hazard";
+            thermalBody.innerText = "Night temperatures dropping near freezing. Give light evening irrigation or field smoke to protect tender seedlings.";
+        } else {
+            thermalBadge.className = "advisory-badge badge-optimal";
+            thermalBadge.innerText = "COMFORTABLE";
+            thermalTitle.innerText = "Temperatures Within Range";
+            thermalBody.innerText = "Ambient temperatures are safe for vegetative growth and flowering.";
+        }
+    }
+
+    // ---------------- Crop Suitability Matrix ----------------
+    let activeCropFilter = "all";
+
+    function filterCrops(type, btn) {
+        activeCropFilter = type;
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderCropMatrix();
+    }
+
+    function renderCropMatrix() {
+        const grid = document.getElementById("cropGrid");
+        grid.innerHTML = "";
+
+        const temp = weatherData.temp_c;
+        const hum = weatherData.humidity;
+        const ph = telemetry.ph;
+
+        const filtered = activeCropFilter === "all" ? CROPS : CROPS.filter(c => c.type === activeCropFilter);
+
+        filtered.forEach(crop => {
+            const climateOk = (temp >= crop.minT && temp <= crop.maxT) && (hum >= crop.minH);
+            const phOk = (ph >= crop.minPh && ph <= crop.maxPh);
+
+            let statusText = "Highly Recommended";
+            let badgeClass = "badge-optimal";
+            let reasonText = `Both climate (${temp}°C, ${hum}%) and soil pH (${ph.toFixed(1)}) are in optimal range.`;
+
+            if (climateOk && !phOk) {
+                statusText = "Remedy Soil pH First";
+                badgeClass = "badge-caution";
+                reasonText = `Climate is ideal, but soil pH (${ph.toFixed(1)}) is outside tolerance (${crop.minPh} - ${crop.maxPh}). Apply ${ph < crop.minPh ? 'Lime' : 'Gypsum'} before planting.`;
+            } else if (!climateOk && phOk) {
+                statusText = "Climate Sub-Optimal";
+                badgeClass = "badge-delay";
+                reasonText = `Soil pH is suitable, but current weather (${temp}°C, ${hum}%) is out of optimal band (${crop.minT}-${crop.maxT}°C).`;
+            } else if (!climateOk && !phOk) {
+                statusText = "Not Recommended";
+                badgeClass = "badge-delay";
+                reasonText = `Neither climate nor soil pH is currently suitable for this crop.`;
             }
 
-            const card = document.createElement('div');
-            card.className = `crop-card`;
-            card.dataset.status = status;
-            card.dataset.type = crop.type;
-
+            const card = document.createElement("div");
+            card.className = "crop-card";
             card.innerHTML = `
                 <div>
                     <div class="crop-card-top">
-                        <div class="crop-title-box">
-                            <span class="crop-emoji">${crop.emoji}</span>
-                            <div>
-                                <div class="crop-name">${crop.name}</div>
-                                <div class="crop-season">${crop.type.toUpperCase()} SEASON</div>
-                            </div>
+                        <div>
+                            <div class="crop-name">${crop.name}</div>
+                            <div class="crop-season-tag">${crop.notes}</div>
                         </div>
-                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        <span class="crop-score-badge ${badgeClass}">${statusText}</span>
                     </div>
 
-                    <div class="crop-conditions">
-                        <div class="condition-row">
-                            <span>Ideal Temp Range:</span>
-                            <strong>${crop.minTemp}°C – ${crop.maxTemp}°C</strong>
+                    <div class="crop-specs" style="margin: 12px 0;">
+                        <div>
+                            <span>Ideal Temp</span>
+                            <strong>${crop.minT} - ${crop.maxT}°C</strong>
                         </div>
-                        <div class="condition-row">
-                            <span>Ideal Humidity:</span>
-                            <strong>${crop.minHumidity}% – ${crop.maxHumidity}%</strong>
+                        <div>
+                            <span>Ideal Hum</span>
+                            <strong>${crop.minH}%+</strong>
+                        </div>
+                        <div>
+                            <span>Target pH</span>
+                            <strong>${crop.minPh} - ${crop.maxPh}</strong>
                         </div>
                     </div>
-                </div>
 
-                <div class="crop-advice">
-                    ${advice}
+                    <div class="crop-rationale">
+                        <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
+                        ${reasonText}
+                    </div>
                 </div>
             `;
-
             grid.appendChild(card);
         });
-
-        applyFilterToCards();
     }
 
-    /* =====================================================================
-       FILTERING & CONTROLS
-       ===================================================================== */
-    function filterCrops(type, btn) {
-        currentFilter = type;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        if (btn) btn.classList.add('active');
-        applyFilterToCards();
-    }
-
-    function applyFilterToCards() {
-        const cards = document.querySelectorAll('.crop-card');
-        cards.forEach(card => {
-            const cardStatus = card.dataset.status;
-            const cardType = card.dataset.type;
-
-            if (currentFilter === 'all') {
-                card.style.display = 'flex';
-            } else if (currentFilter === 'optimal') {
-                card.style.display = (cardStatus === 'optimal') ? 'flex' : 'none';
-            } else if (currentFilter === cardType) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
-
+    // ---------------- UI Theme & Unit Toggles ----------------
     function toggleTemperatureUnit() {
         isFahrenheit = !isFahrenheit;
-        document.getElementById('unitText').innerText = isFahrenheit ? '°F / Imperial' : '°C / Metric';
-        if (currentWeatherData) renderWeather();
+        document.getElementById("unitText").innerText = isFahrenheit ? "°F / Imperial" : "°C / Metric";
+        renderWeatherUI();
     }
 
     function toggleDarkMode() {
-        document.body.classList.toggle('dark-theme');
-        const isDark = document.body.classList.contains('dark-theme');
-        document.getElementById('themeText').innerText = isDark ? 'Light Mode' : 'Dark Mode';
+        isDarkMode = !isDarkMode;
+        document.body.classList.toggle("dark-theme", isDarkMode);
+        document.getElementById("themeText").innerText = isDarkMode ? "Light Mode" : "Dark Mode";
     }
 
-    function cycleBackground() {
-        const modes = ['custom', 'dynamic', 'dark'];
-        const nextIndex = (modes.indexOf(currentBgMode) + 1) % modes.length;
-        currentBgMode = modes[nextIndex];
+    // ---------------- PWA Support ----------------
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const btn = document.getElementById("pwaInstallBtn");
+        if (btn) btn.style.display = "flex";
+    });
 
-        if (currentBgMode === 'custom') {
-            document.body.style.backgroundImage = "url('./static/crop_weather_bg.jpg')";
-            document.getElementById('bgText').innerText = 'Custom Farm BG';
-        } else if (currentBgMode === 'dynamic') {
-            document.getElementById('bgText').innerText = 'Dynamic Weather Sky';
-            if (currentWeatherData) applyDynamicBackground(currentWeatherData.conditionCategory);
-        } else {
-            document.body.style.backgroundImage = "linear-gradient(135deg, #09131d 0%, #152331 100%)";
-            document.getElementById('bgText').innerText = 'Clean Deep Blue';
+    function installPWA() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                deferredPrompt = null;
+                document.getElementById("pwaInstallBtn").style.display = "none";
+            });
         }
     }
 
-    function applyDynamicBackground(category) {
-        let url = './static/crop_weather_bg.jpg';
-        switch (category) {
-            case 'rain':
-                url = 'https://images.unsplash.com/photo-1519692933481-e162a57d6721?auto=format&fit=crop&w=1600&q=80';
-                break;
-            case 'clouds':
-                url = 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=1600&q=80';
-                break;
-            case 'clear':
-                url = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80';
-                break;
-            case 'mist':
-                url = 'https://images.unsplash.com/photo-1487621167305-5d248087c724?auto=format&fit=crop&w=1600&q=80';
-                break;
-            default:
-                url = './static/crop_weather_bg.jpg';
+    function registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration note:', err));
         }
-        document.body.style.backgroundImage = `url('${url}')`;
-    }
-
-    /* =====================================================================
-       WEATHER CODE MAPPINGS
-       ===================================================================== */
-    function mapWmoCode(code) {
-        if (code === 0) return { label: 'Clear Sky', icon: '☀️', category: 'clear' };
-        if (code === 1 || code === 2) return { label: 'Partly Cloudy', icon: '🌤️', category: 'clouds' };
-        if (code === 3) return { label: 'Overcast', icon: '☁️', category: 'clouds' };
-        if (code >= 45 && code <= 48) return { label: 'Fog / Mist', icon: '🌫️', category: 'mist' };
-        if (code >= 51 && code <= 55) return { label: 'Light Drizzle', icon: '🌦️', category: 'rain' };
-        if (code >= 61 && code <= 65) return { label: 'Rain Showers', icon: '🌧️', category: 'rain' };
-        if (code >= 71 && code <= 77) return { label: 'Snow Flurries', icon: '❄️', category: 'snow' };
-        if (code >= 80 && code <= 82) return { label: 'Heavy Downpour', icon: '⛈️', category: 'rain' };
-        if (code >= 95 && code <= 99) return { label: 'Thunderstorm', icon: '🌩️', category: 'rain' };
-        return { label: 'Scattered Clouds', icon: '⛅', category: 'clouds' };
-    }
-
-    function mapOwmIcon(iconCode) {
-        if (!iconCode) return '🌤️';
-        if (iconCode.startsWith('01')) return '☀️';
-        if (iconCode.startsWith('02')) return '🌤️';
-        if (iconCode.startsWith('03') || iconCode.startsWith('04')) return '☁️';
-        if (iconCode.startsWith('09') || iconCode.startsWith('10')) return '🌧️';
-        if (iconCode.startsWith('11')) return '🌩️';
-        if (iconCode.startsWith('13')) return '❄️';
-        if (iconCode.startsWith('50')) return '🌫️';
-        return '⛅';
-    }
-
-    function mapOwmCategory(main) {
-        if (!main) return 'clear';
-        const m = main.toLowerCase();
-        if (m.includes('rain') || m.includes('drizzle') || m.includes('thunderstorm')) return 'rain';
-        if (m.includes('cloud')) return 'clouds';
-        if (m.includes('clear')) return 'clear';
-        if (m.includes('mist') || m.includes('fog') || m.includes('haze')) return 'mist';
-        return 'clear';
-    }
-
-    function showLoader(visible) {
-        document.getElementById('loaderOverlay').style.display = visible ? 'flex' : 'none';
     }
 </script>
 

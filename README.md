@@ -1,45 +1,58 @@
-# 🌾 AgriWeather – Weather & Crop Advisory System
+# 🌾 AgriWeather IoT – All-in-One Smart Farming, Soil pH & Crop Advisory
 
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen.svg)](https://sb2217.github.io/weather-for-crop/)
 [![GitHub Pages](https://img.shields.io/badge/Hosted%20on-GitHub%20Pages-blue.svg)](https://sb2217.github.io/weather-for-crop/)
+[![PWA](https://img.shields.io/badge/PWA-Installable-purple.svg)](https://sb2217.github.io/weather-for-crop/)
 [![Python](https://img.shields.io/badge/Python-3.x-yellow.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> A modern, responsive Agricultural Weather & Crop Suitability Advisory web application with real-time meteorological feeds, custom farm visuals, and agronomic crop recommendations.
+> **All-in-one Smart Farming Web App & Progressive Web App (PWA)** uniting live farm hardware telemetry (`base.apk` replacement), real-time soil pH monitoring via Telegram Bot, scientific pH neutralization prescriptions, precision next-day farming action advisories, and composite crop suitability matching.
 
 ---
 
 ## 🚀 Live Demo on GitHub Pages
-Visit the live application directly in your browser:
+Visit the live application directly in any smartphone or desktop browser:  
 👉 **[https://sb2217.github.io/weather-for-crop/](https://sb2217.github.io/weather-for-crop/)**
+
+*(On mobile Chrome/Safari, tap **"Add to Home Screen"** or **"Install App"** to use it fullscreen like a native Android APK!)*
 
 ---
 
-## ✨ Features
+## ✨ Unified Features
 
-- **🌡️ Live Temperature & Conditions**: Real-time temperature (°C/°F toggle), apparent feels-like temperature, and daily min/max.
-- **💧 Atmospheric Humidity**: Precision humidity percentage, moisture indexing, and soil evaporation indicators.
-- **🌾 Smart Crop Advisory Engine**: Real-time suitability evaluation for major crops based on physiological agronomic thresholds:
-  - **Wheat** (Rabi - Cool season cereal)
-  - **Rice / Paddy** (Kharif - High heat & moisture)
-  - **Maize / Corn** (Kharif - Moderate climate)
-  - **Cotton** (Cash crop - Warm sunshine)
-  - **Sugarcane** (Cash crop - Tropical heavy feeder)
-  - **Pulses & Gram** (Rabi - Drought tolerant legume)
-  - **Mustard** (Rabi - Winter oilseed)
-  - **Potato** (Rabi - Cool tuber growth)
-  - **Soybean** (Kharif - Nitrogen fixing legume)
-- **⚠️ Agricultural Hazard Alerts**:
-  - 🔥 **Heatwave Alert** ($\ge 40^\circ\text{C}$): Excessive evapotranspiration and wilting warning
-  - ❄ **Ground Frost Warning** ($\le 4^\circ\text{C}$): Cell freeze and frost damage alert
-  - 💧 **High Humidity & Fungal Risk** ($\ge 85\%$): Blight and fungal spore risk
-  - 💨 **Strong Wind Advisory** ($\ge 32\text{ km/h}$): Crop lodging / stalk breakage warning
-- **🎨 Custom Agricultural Background**:
-  - High-definition panoramic farm landscape background (`static/crop_weather_bg.jpg`)
-  - Optional **Dynamic Sky Mode** that adapts to live weather (clear, rain, clouds, mist)
-  - Dark Glass Mode toggle
-- **📍 Instant Geolocation**: 1-click "My Location" button with automatic GPS coordinates lookup.
-- **⚡ Dual Mode**: Runs completely client-side on **GitHub Pages** (zero backend server required) and also supports local **Python Flask** server execution.
+### 1. 📡 Live Farm Hardware Telemetry (Mobile APK Replacement)
+- **Soil Moisture Sensor**: Live percentage ($0\% - 100\%$), visual progress bar, and dry/optimal/saturated status.
+- **Relay Water Pump**: Live operational status (`ON` with green pulse / `OFF`) driven by automatic soil threshold logic.
+- **Farm Lamp & Bulb**: Live status (`ON` with glowing amber / `OFF`) automated by LDR darkness sensor.
+- **Cloud Ingestion**: Connects seamlessly with `projectiot.in` cloud polling using project `userName` and ESP8266 MAC address (`B4:E6:2D:30:77:55`).
+- **Interactive Demo Stream Toggle**: Allows full demonstration of live telemetry even when physical microcontrollers are powered off.
+
+### 2. 🧪 Live Soil pH & Telegram Bot Bridge (`Phsep2026 bot`)
+- **Direct Telegram Bot API Integration**: Connects over mobile hotspot to the ESP8266 pH node without requiring any hardware reflashing.
+- **Telegram `getUpdates` Engine**: Automatically extracts the latest `"PH value is X.XX"` message received by the bot.
+- **Classification Spectrum**: Identifies whether the soil is *Strongly Acidic*, *Moderately Acidic*, *Balanced/Optimal*, *Moderately Alkaline*, or *Strongly Alkaline/Sodic*.
+
+### 3. ⚖️ Scientific Soil pH Neutralization & Prescription Engine
+- **Chemical Neutralizer Calculator**: Prescribes exact remedies based on live or manual pH:
+  - **Acidic Soils ($< 6.0$)**: Agricultural Lime ($\text{CaCO}_3$), Dolomite, Slaked Lime.
+  - **Alkaline Soils ($> 7.5$)**: Agricultural Gypsum ($\text{CaSO}_4 \cdot 2\text{H}_2\text{O}$), Elemental Sulfur, Iron Pyrite.
+- **Dosage Calculator**: Displays specific application rates in **kg per acre** and **g per square meter**.
+- **Organic Amendments**: Prescribes hardwood ash, well-decomposed cow dung manure, press mud, and green manure (Dhaincha/Sesbania).
+- **Nutrient Lockout Warnings**: Flags bioavailability locks (Phosphorus fixation in acid soil; Zinc/Iron chlorosis in alkaline soil).
+- **Interactive pH Slider**: Allows farmers or science exhibition judges to simulate any pH test report ($3.0 - 10.0$).
+
+### 4. 🚜 Next-Day & Future Precision Action Planner ("What to do Tomorrow")
+- **Fertilizer & Foliar Spray Advisory**: Analyzes next 24-48h rain probability and wind speed. Alerts the farmer to *Delay Spraying* if rain or wind drift will cause chemical runoff and waste.
+- **Smart Irrigation Coordination**: Correlates live hardware soil moisture with tomorrow's predicted rainfall. If soil is dry but heavy rain is forecasted, it advises *Holding the Pump* to save water and electricity.
+- **Pest & Fungal Disease Prevention**: Monitors sustained atmospheric humidity ($>80\%$) and temperature to alert farmers about fungal blight risks before outbreaks occur.
+- **Thermal Stress & Frost Protection**: Alerts for extreme heatwaves ($\ge 40^\circ\text{C}$) or ground frost ($\le 4^\circ\text{C}$) with protective mulching/irrigation tips.
+
+### 5. 🌾 Composite Crop Suitability Matrix (Weather + Soil pH)
+Evaluates 9 major Indian crops (**Wheat, Rice, Maize, Cotton, Sugarcane, Pulses, Mustard, Potato, Soybean**) against **both atmospheric weather AND soil pH**:
+- `Highly Recommended` (Both weather and soil pH are optimal).
+- `Remedy Soil pH First` (Climate is ideal, but pH needs lime or gypsum before sowing).
+- `Climate Sub-Optimal` (Soil matches, but temperature or humidity is out of season).
+- `Not Recommended`.
 
 ---
 
@@ -47,85 +60,53 @@ Visit the live application directly in your browser:
 
 ```text
 weather-for-crop/
-├── index.html                  # Standalone GitHub Pages entry point (Client-side app)
-├── app.py                      # Flask backend application
-├── weather_logic.py            # Python weather fetching and crop advisory rules
+├── index.html                  # Standalone GitHub Pages entry point (Client-side PWA)
+├── manifest.json               # Progressive Web App manifest
+├── sw.js                       # Service Worker for offline resilience
+├── app.py                      # Flask backend application with REST API
+├── weather_logic.py            # Python weather fetching, pH neutralization & advisory rules
 ├── static/
 │   ├── crop_weather_bg.jpg     # Custom agricultural wallpaper background
-│   └── w_bg.png                # Pixel art desk wallpaper
+│   └── w_bg.png                # App icon and visual asset
 ├── templates/
-│   └── index.html              # Jinja2 template for Flask deployment
-├── .gitignore                  # Git ignore rules for cache and environment
-└── README.md                   # Documentation and hosting guide
+│   └── index.html              # Server-rendered Jinja2 template
+├── .gitignore                  # Git ignore rules
+└── README.md                   # Full documentation & project guide
 ```
 
 ---
 
-## 🌐 Hosting on GitHub Pages (Step-by-Step)
+## 🌐 Deploying Updates to GitHub Pages
 
-Because `index.html` is located directly at the root of the repository, enabling GitHub Pages takes less than a minute:
+To publish the new unified application to GitHub Pages:
 
-1. Push your repository to GitHub:
-   ```bash
-   git add .
-   git commit -m "Add GitHub Pages web app with live weather, crop advisory, and custom bg"
-   git push -u origin main
-   ```
+```bash
+git add .
+git commit -m "Upgrade to unified Smart Farming PWA with IoT telemetry, Telegram pH bridge & next-day advisory"
+git push origin main
+```
 
-2. Open your repository on GitHub:
-   [https://github.com/sb2217/weather-for-crop](https://github.com/sb2217/weather-for-crop)
-
-3. Click **Settings** (tab at the top right of the repository).
-
-4. On the left sidebar, click **Pages**.
-
-5. Under **Build and deployment**:
-   - **Source**: Select `Deploy from a branch`
-   - **Branch**: Select `main`
-   - **Folder**: Select `/ (root)`
-   - Click **Save**.
-
-6. Wait ~30 to 60 seconds. Your live web app will be accessible at:
-   👉 **`https://sb2217.github.io/weather-for-crop/`**
+Your live site will update automatically at:  
+👉 **`https://sb2217.github.io/weather-for-crop/`**
 
 ---
 
-## 💻 Running Locally with Python (Optional)
+## 💻 Running Locally with Python
 
-If you wish to run the app locally with Flask:
+```bash
+# 1. Install dependencies
+pip install flask requests
 
-1. **Install dependencies**:
-   ```bash
-   pip install flask requests
-   ```
+# 2. Run Flask server
+python app.py
 
-2. **Start the Flask server**:
-   ```bash
-   python app.py
-   ```
+# 3. Open in browser
+http://127.0.0.1:5000
+```
 
-3. **Open in browser**:
-   Navigate to [http://127.0.0.1:5000](http://127.0.0.1:5000).
-
-*(Alternatively, you can simply double-click `index.html` in your file explorer to open it in Chrome/Edge/Firefox!)*
-
----
-
-## 📜 Agronomic Logic Reference
-
-| Crop | Ideal Temp Range | Ideal Humidity | Agronomic Classification |
-|---|---|---|---|
-| **Wheat** | 10°C – 25°C | 45% – 70% | Rabi (Winter Cereal) |
-| **Rice (Paddy)** | 20°C – 36°C | 65% – 95% | Kharif (Wetland Cereal) |
-| **Maize (Corn)** | 18°C – 32°C | 45% – 75% | Kharif (Warm Cereal) |
-| **Cotton** | 21°C – 35°C | 40% – 65% | Cash (Warm Fiber) |
-| **Sugarcane** | 20°C – 35°C | 60% – 88% | Cash (Tropical Perennial) |
-| **Pulses** | 14°C – 28°C | 35% – 65% | Rabi / Kharif (Legume) |
-| **Mustard** | 10°C – 25°C | 40% – 65% | Rabi (Oilseed) |
-| **Potato** | 14°C – 24°C | 55% – 85% | Rabi (Tuber) |
-| **Soybean** | 20°C – 32°C | 50% – 75% | Kharif (Oilseed Legume) |
+*(You can also simply open `index.html` directly in Google Chrome, Microsoft Edge, or Safari!)*
 
 ---
 
 ## 📄 License
-This project is open-source and available under the [MIT License](LICENSE).
+This project is open-source under the [MIT License](LICENSE).
