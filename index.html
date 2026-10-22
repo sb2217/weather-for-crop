@@ -24,24 +24,29 @@
             --secondary: #f59e0b;
             --danger: #ef4444;
             --info: #0284c7;
-            --surface: rgba(255, 255, 255, 0.85);
-            --surface-card: rgba(255, 255, 255, 0.75);
-            --surface-border: rgba(255, 255, 255, 0.45);
+            --bg-page: #f8fafc;
+            --surface: #ffffff;
+            --surface-card: #ffffff;
+            --surface-border: #e2e8f0;
+            --surface-hover: #f1f5f9;
             --text-main: #0f172a;
             --text-muted: #475569;
-            --glass-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
-            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            --blur: 16px;
+            --text-subtle: #64748b;
+            --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+            --hover-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
         }
 
         body.dark-theme {
-            --surface: rgba(15, 23, 42, 0.88);
-            --surface-card: rgba(30, 41, 59, 0.82);
-            --surface-border: rgba(255, 255, 255, 0.12);
+            --bg-page: #0b0f19;
+            --surface: #111827;
+            --surface-card: #141e33;
+            --surface-border: #1e293b;
+            --surface-hover: #1e293b;
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --glass-shadow: 0 16px 38px rgba(0, 0, 0, 0.5);
-            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            --text-muted: #cbd5e1;
+            --text-subtle: #94a3b8;
+            --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+            --hover-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.6);
         }
 
         * {
@@ -54,91 +59,80 @@
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             color: var(--text-main);
             min-height: 100vh;
-            background: #0f172a url('./static/crop_weather_bg.jpg') no-repeat center center fixed;
-            background-size: cover;
-            transition: background-image 0.5s ease;
+            background-color: var(--bg-page);
+            background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+                              radial-gradient(at 100% 0%, rgba(2, 132, 199, 0.06) 0px, transparent 50%);
+            background-attachment: fixed;
             position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(4px);
-            z-index: 0;
-            pointer-events: none;
+            -webkit-font-smoothing: antialiased;
         }
 
         .app-container {
-            position: relative;
-            z-index: 1;
-            max-width: 1300px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 24px 20px 80px 20px;
+            padding: 16px 16px 80px 16px;
         }
 
-        /* Header Navigation */
+        /* Sleek Compact Header */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: var(--surface);
-            backdrop-filter: blur(var(--blur));
             border: 1px solid var(--surface-border);
-            padding: 16px 28px;
-            border-radius: 20px;
-            box-shadow: var(--glass-shadow);
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
+            padding: 10px 18px;
+            border-radius: 14px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
         }
 
         .logo-area {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 10px;
         }
 
         .logo-icon {
-            width: 48px;
-            height: 48px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            border-radius: 14px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+            font-size: 17px;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
         }
 
-        .logo-text h1 {
-            font-size: 22px;
+        .brand-title {
+            font-size: 17px;
             font-weight: 800;
-            letter-spacing: -0.5px;
+            color: var(--text-main);
+            letter-spacing: -0.4px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .badge-iot-pulse {
+        .live-pill {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             font-size: 11px;
             font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 20px;
-            background: rgba(16, 185, 129, 0.15);
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(16, 185, 129, 0.12);
             color: var(--primary);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.25);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .pulse-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             background: var(--primary);
             border-radius: 50%;
             box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
@@ -146,54 +140,105 @@
         }
 
         @keyframes pulse-ring {
-            to {
-                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
-            }
-        }
-
-        .logo-text span {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 500;
+            to { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
         }
 
         .header-controls {
             display: flex;
             align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 8px;
         }
 
-        .btn-toggle {
-            background: var(--surface-card);
+        .nav-icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             border: 1px solid var(--surface-border);
+            background: var(--surface);
             color: var(--text-main);
-            padding: 9px 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 13px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            box-shadow: var(--card-shadow);
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.15s ease;
         }
 
-        .btn-toggle:hover {
-            transform: translateY(-2px);
+        .nav-icon-btn:hover {
+            background: var(--surface-hover);
+            color: var(--primary);
             border-color: var(--primary);
         }
 
-        .btn-iot-settings {
-            background: linear-gradient(135deg, #0284c7, #0369a1);
+        .nav-apk-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #16a34a, #15803d);
             color: white;
-            border: none;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 7px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+            transition: all 0.15s ease;
         }
-        .btn-iot-settings:hover {
-            color: white;
-            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+
+        .nav-apk-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+        }
+
+        /* Section Headings - 100% High Contrast & Readable */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 26px 0 12px 0;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+        }
+
+        .section-title i {
+            width: 32px;
+            height: 32px;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--primary);
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .section-subtitle {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .badge-auto-sync {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
         /* Search Section */
@@ -947,53 +992,36 @@
 
 <div class="app-container">
 
-    <!-- Header Navigation -->
+    <!-- Sleek Compact Header Navigation -->
     <header>
         <div class="logo-area">
             <div class="logo-icon">
-                <i class="fa-solid fa-wheat-awn"></i>
+                <i class="fa-solid fa-seedling"></i>
             </div>
-            <div class="logo-text">
-                <h1>
-                    AgriWeather IoT
-                    <span class="badge-iot-pulse">
-                        <span class="pulse-dot"></span>
-                        <span id="headerIotStatus">Hardware Live</span>
-                    </span>
-                </h1>
-                <span>All-in-One Smart Farming, Soil pH & Crop Advisory</span>
+            <div class="brand-title">
+                AgriWeather
+                <span class="live-pill">
+                    <span class="pulse-dot"></span>
+                    <span id="headerIotStatus">Online</span>
+                </span>
             </div>
         </div>
 
         <div class="header-controls">
-            <!-- Hardware IoT Settings Modal Button -->
-            <button class="btn-toggle btn-iot-settings" onclick="openIotModal()" title="Configure ESP8266 & Telegram Bot">
-                <i class="fa-solid fa-microchip"></i>
-                <span>IoT Hardware</span>
-            </button>
-
-            <!-- Units Toggle -->
-            <button class="btn-toggle" id="unitToggle" onclick="toggleTemperatureUnit()" title="Toggle Celsius / Fahrenheit">
-                <i class="fa-solid fa-temperature-half"></i>
-                <span id="unitText">°C / Metric</span>
-            </button>
-
-            <!-- Night / Dark Mode -->
-            <button class="btn-toggle" id="themeToggle" onclick="toggleDarkMode()" title="Toggle Dark Glass Mode">
-                <i class="fa-solid fa-moon"></i>
-                <span id="themeText">Dark Mode</span>
-            </button>
-
-            <!-- Download Android APK Button -->
-            <a href="./SmartFarming_v2.apk" download class="btn-toggle" style="background: linear-gradient(135deg, #16a34a, #15803d); color: white; text-decoration: none; font-weight: 700;" title="Download Native Android App for Phone (Zero CORS restrictions)">
+            <!-- Download APK Button -->
+            <a href="./SmartFarming_v2.apk" download class="nav-apk-pill" title="Download Android App (Zero CORS restrictions)">
                 <i class="fa-brands fa-android"></i>
-                <span>Download APK</span>
+                <span>Get App</span>
             </a>
 
-            <!-- Install PWA Button (Hidden by default unless installable) -->
-            <button class="btn-toggle" id="pwaInstallBtn" style="display:none;" onclick="installPWA()" title="Install as Mobile App">
-                <i class="fa-solid fa-download"></i>
-                <span>Install App</span>
+            <!-- Night / Light Mode Toggle -->
+            <button class="nav-icon-btn" id="themeToggle" onclick="toggleDarkMode()" title="Toggle Dark / Light Mode">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+
+            <!-- Hardware Settings Modal Button -->
+            <button class="nav-icon-btn" onclick="openIotModal()" title="Hardware Configuration (ESP8266 & Telegram)">
+                <i class="fa-solid fa-gear"></i>
             </button>
         </div>
     </header>
@@ -1024,35 +1052,26 @@
         </div>
     </section>
 
-    <!-- SECTION 1: IoT Live Telemetry Grid (Complete APK Replacement) -->
+    <!-- SECTION 1: IoT Live Telemetry Grid -->
     <div class="section-header">
         <div class="section-title">
             <i class="fa-solid fa-satellite-dish"></i>
-            Live Farm IoT Nodes (Model Telemetry)
+            <span>Live Farm Telemetry</span>
         </div>
-        <div style="font-size: 13px; color: var(--text-muted);">
-            NodeMCU ESP8266 + Sensors Live Stream
-        </div>
+        <span class="section-subtitle">NodeMCU ESP8266 & Sensors (projectiot.in + Telegram)</span>
     </div>
 
     <section class="iot-panel">
         <div class="iot-header">
             <div class="iot-header-info">
                 <h3>
-                    <i class="fa-solid fa-wifi" style="color: var(--primary);"></i>
-                    Node 1 & Node 2 Real-Time Stream
+                    <i class="fa-solid fa-microchip" style="color: var(--primary);"></i>
+                    Real-Time Sensor Feed
                 </h3>
-                <p id="iotLastUpdated">Syncing with projectiot.in & Telegram Bot...</p>
+                <p id="iotLastUpdated">Auto-syncing hardware feed...</p>
             </div>
-            <div class="iot-actions">
-                <button class="btn-toggle" onclick="pollAllTelemetry()" title="Refresh Telemetry">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                    <span>Sync Now</span>
-                </button>
-                <button class="btn-toggle" id="demoToggleBtn" onclick="toggleDemoStream()" title="Simulate Hardware Data">
-                    <i class="fa-solid fa-flask"></i>
-                    <span id="demoToggleText">Demo Stream: OFF</span>
-                </button>
+            <div class="iot-status-badge">
+                <span class="badge-auto-sync"><i class="fa-solid fa-arrows-rotate fa-spin" style="--fa-animation-duration: 3.5s;"></i> Auto-Sync Active</span>
             </div>
         </div>
 
@@ -1250,7 +1269,7 @@
     <div class="section-header">
         <div class="section-title">
             <i class="fa-solid fa-calendar-day"></i>
-            Tomorrow's Precision Farm Action Planner
+            <span>Tomorrow's Precision Farm Action Planner</span>
         </div>
         <div style="font-size: 13px; color: var(--text-muted);">
             Driven by 24h & 48h Hourly Meteorological Model
@@ -1331,7 +1350,7 @@
     <div class="section-header">
         <div class="section-title">
             <i class="fa-solid fa-cloud-sun-rain"></i>
-            Live Agro-Meteorological Overview
+            <span>Live Agro-Meteorological Overview</span>
         </div>
         <div style="font-size: 13px; color: var(--text-muted);" id="weatherSyncTime">
             Open-Meteo High-Resolution Feed
@@ -1398,7 +1417,7 @@
     <div class="section-header">
         <div class="section-title">
             <i class="fa-solid fa-seedling"></i>
-            Agronomic Crop Suitability Matrix (Weather + Soil pH)
+            <span>Agronomic Crop Suitability Matrix (Weather + Soil pH)</span>
         </div>
         <div style="font-size: 13px; color: var(--text-muted);">
             Matches 9 Major Crops against Current Weather & Measured Soil pH
@@ -1477,8 +1496,6 @@
     let currentCity = "Kanpur";
     let isFahrenheit = false;
     let isDarkMode = false;
-    let demoStreamActive = false;
-    let demoInterval = null;
     let telemetryPollInterval = null;
 
     // Telemetry State
@@ -1556,12 +1573,10 @@
     function startTelemetryPolling() {
         pollAllTelemetry();
         if (telemetryPollInterval) clearInterval(telemetryPollInterval);
-        telemetryPollInterval = setInterval(pollAllTelemetry, 4000); // Poll every 4 seconds for snappy response
+        telemetryPollInterval = setInterval(pollAllTelemetry, 3500); // 3.5s automatic background poll
     }
 
     async function pollAllTelemetry() {
-        if (demoStreamActive) return; // Skip if demo stream is active
-
         const username = localStorage.getItem("cfg_username") || "SoilMoisture";
         const mac = localStorage.getItem("cfg_mac") || "B4:E6:2D:30:77:55";
         const fetchUrl = localStorage.getItem("cfg_fetch_url") || "https://www.projectiot.in/token/fetch.php";
@@ -1576,63 +1591,67 @@
                 }
                 return;
             } catch(bridgeErr) {
-                console.log("Native Android bridge call failed, falling back to web fetch:", bridgeErr);
+                console.log("Native Android bridge note:", bridgeErr);
             }
         }
 
-        // 2. Python Backend Proxy (/api/telemetry when running app.py)
-        let handledByLocalBackend = false;
+        // 2. Python Backend Proxy (When running app.py locally)
+        let handled = false;
         try {
             const localRes = await fetch(`/api/telemetry?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`);
             if (localRes.ok) {
                 const localData = await localRes.json();
                 if (localData && localData.success && localData.raw) {
                     processRawTelemetry(localData.raw);
-                    handledByLocalBackend = true;
+                    handled = true;
                 }
             }
-        } catch(e) {
-            // Not running under Python Flask backend, proceed to direct / web fetch
-        }
+        } catch(e) {}
 
-        // 3. Direct Fetch Fallback (subject to browser CORS on static hosts)
-        if (!handledByLocalBackend) {
+        // 3. Web Auto-Sync (GitHub Pages: calls high-speed CORS bridge with Access-Control-Allow-Origin: *)
+        if (!handled) {
+            const rawUrl = `${fetchUrl}?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`;
             try {
-                const url = `${fetchUrl}?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`;
-                const response = await fetch(url, { cache: "no-store" });
+                const proxyUrl = `https://cors-get-proxy.sirjosh.workers.dev/?url=${encodeURIComponent(rawUrl)}`;
+                const response = await fetch(proxyUrl, { cache: "no-store" });
                 if (response.ok) {
                     const text = await response.text();
                     processRawTelemetry(text);
+                    handled = true;
                 }
-            } catch (corsErr) {
-                // Browser CORS restricted (expected on static GitHub Pages)
-                const lastUp = document.getElementById("iotLastUpdated");
-                if (lastUp && !lastUp.innerText.includes("Live Synced")) {
-                    lastUp.innerHTML = '<span style="color:#f59e0b;"><i class="fa-solid fa-triangle-exclamation"></i> Browser CORS Mode — For 100% Live Hardware Sync, install <b>SmartFarming_v2.apk</b> or run <code>python app.py</code></span>';
-                }
+            } catch (proxyErr) {
+                try {
+                    const directRes = await fetch(rawUrl, { cache: "no-store" });
+                    if (directRes.ok) {
+                        const directText = await directRes.text();
+                        processRawTelemetry(directText);
+                        handled = true;
+                    }
+                } catch(directErr) {}
             }
         }
 
-        // 4. Telegram Bot Fetch for Web
+        // 4. Telegram Bot Fetch for Soil pH
         if (botToken) {
             fetchTelegramUpdatesWeb(botToken);
         }
     }
 
     function processRawTelemetry(text) {
-        if (!text || text.trim() === "false") {
-            const lastUp = document.getElementById("iotLastUpdated");
-            if (lastUp) lastUp.innerText = "Hardware Standby (Waiting for ESP8266 ping...)";
+        if (!text) return;
+        const trimmed = text.trim();
+        const lastUp = document.getElementById("iotLastUpdated");
+        if (trimmed === "false") {
+            if (lastUp) lastUp.innerHTML = '<span style="color:var(--text-subtle);"><i class="fa-solid fa-satellite"></i> Standby (Waiting for ESP8266 ping...)</span>';
             return;
         }
-        const parts = text.split(',');
+        const parts = trimmed.split(',');
         if (parts.length >= 4) {
             telemetry.lamp = parts[0].trim();
             telemetry.moisture = parseFloat(parts[1]) || 0;
             telemetry.pump = parts[2].trim();
             telemetry.lastUpdated = parts[3].trim();
-            const lastUp = document.getElementById("iotLastUpdated");
-            if (lastUp) lastUp.innerText = "Live Synced: " + telemetry.lastUpdated;
+            if (lastUp) lastUp.innerHTML = '<span style="color:var(--primary); font-weight:600;"><i class="fa-solid fa-circle-check"></i> Live Synced: ' + telemetry.lastUpdated + '</span>';
 
             updateTelemetryUI();
             updateSmartAdvisories();
@@ -1644,17 +1663,17 @@
         if (!tgData || !tgData.ok || !Array.isArray(tgData.result) || tgData.result.length === 0) {
             return;
         }
-        // Traverse updates backwards to pick the most recent message
         for (let i = tgData.result.length - 1; i >= 0; i--) {
             const item = tgData.result[i];
             const msgObj = item.message || item.channel_post || item.edited_message;
             if (msgObj && msgObj.text) {
-                const match = msgObj.text.match(/([0-9]+\.[0-9]+)/) || msgObj.text.match(/(\b[0-9]{1,2}\b)/);
+                const match = msgObj.text.match(/([0-9]+\.[0-9]+)/) || msgObj.text.match(/([0-9]{1,2})/);
                 if (match) {
                     const parsedPh = parseFloat(match[1]);
                     if (parsedPh >= 0 && parsedPh <= 14) {
                         telemetry.ph = parsedPh;
-                        document.getElementById("phSourceText").innerText = "Telegram: " + msgObj.text;
+                        const sourceElem = document.getElementById("phSourceText");
+                        if (sourceElem) sourceElem.innerText = "Telegram: " + msgObj.text;
                         const slider = document.getElementById("phManualSlider");
                         if (slider) slider.value = parsedPh;
                         updateTelemetryUI();
@@ -1697,7 +1716,8 @@
         telemetry.ph = parseFloat(val);
         const slider = document.getElementById("phManualSlider");
         if (slider) slider.value = val;
-        document.getElementById("phSourceText").innerText = "Manual Preset Demonstration";
+        const sourceElem = document.getElementById("phSourceText");
+        if (sourceElem) sourceElem.innerText = "Target Set: " + val + " pH";
         updateTelemetryUI();
         renderPhPrescription(telemetry.ph);
         updateSmartAdvisories();
@@ -1706,7 +1726,7 @@
 
     function speakSoilAdvisory() {
         if (!('speechSynthesis' in window)) {
-            alert("Text-to-speech is not supported on this device/browser.");
+            alert("Text-to-speech is not supported on this browser.");
             return;
         }
         window.speechSynthesis.cancel();
@@ -1780,36 +1800,6 @@
         } else {
             phBadge.style.background = "#fef3c7"; phBadge.style.color = "#d97706";
             phBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Alkaline Soil';
-        }
-
-        document.getElementById("iotLastUpdated").innerText = "Last Synced: " + telemetry.lastUpdated;
-    }
-
-    // Demo Mode Stream Toggle
-    function toggleDemoStream() {
-        demoStreamActive = !demoStreamActive;
-        const btn = document.getElementById("demoToggleText");
-        if (demoStreamActive) {
-            btn.innerText = "Demo Stream: ON (Active)";
-            document.getElementById("headerIotStatus").innerText = "Demo Simulation";
-            // Simulate changing hardware values
-            demoInterval = setInterval(() => {
-                telemetry.moisture = Math.round(25 + Math.random() * 45);
-                telemetry.pump = telemetry.moisture < 30 ? "ON" : "OFF";
-                telemetry.lamp = Math.random() > 0.5 ? "ON" : "OFF";
-                telemetry.ph = parseFloat((5.2 + Math.random() * 2.6).toFixed(2));
-                telemetry.lastUpdated = new Date().toLocaleTimeString();
-                updateTelemetryUI();
-                renderPhPrescription(telemetry.ph);
-                document.getElementById("phManualSlider").value = telemetry.ph;
-                updateSmartAdvisories();
-                renderCropMatrix();
-            }, 3500);
-        } else {
-            btn.innerText = "Demo Stream: OFF";
-            document.getElementById("headerIotStatus").innerText = "Hardware Live";
-            if (demoInterval) clearInterval(demoInterval);
-            pollAllTelemetry();
         }
     }
 
