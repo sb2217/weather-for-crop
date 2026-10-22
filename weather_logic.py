@@ -442,13 +442,13 @@ def composite_crop_recommendations(temp_c, humidity, soil_moisture=None, ph_val=
 
 # ---------------- Telegram Bot Bridge for pH Node ----------------
 
-def fetch_telegram_ph(bot_token):
+def fetch_telegram_ph(bot_token="8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A"):
     """
     Polls the Telegram Bot getUpdates endpoint to retrieve the latest pH reading.
     e.g. ESP8266 sent: "PH value is 5.40"
     """
     if not bot_token:
-        raise ValueError("Telegram Bot Token is required")
+        bot_token = "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A"
 
     url = f"https://api.telegram.org/bot{bot_token}/getUpdates?offset=-1"
     res = requests.get(url, timeout=8)

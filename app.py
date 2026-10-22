@@ -92,8 +92,9 @@ def api_neutralize():
 
 @app.route("/api/ph/telegram")
 def api_telegram():
-    token = request.args.get("token", "")
+    token = request.args.get("token", "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A")
     if not token:
+        token = "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A"
         return jsonify({"success": False, "error": "Token required"}), 400
     try:
         res = fetch_telegram_ph(token)

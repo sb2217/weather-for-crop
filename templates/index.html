@@ -1517,7 +1517,7 @@
 
             <div class="modal-group">
                 <label>Telegram Bot Token (for Phsep2026 bot):</label>
-                <input type="text" id="cfgBotToken" placeholder="Paste bot token (e.g. 123456789:ABCdefGHI...)">
+                <input type="text" id="cfgBotToken" value="8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A" placeholder="Telegram Bot Token">
                 <small>The token provided by @BotFather when creating the bot. Used to fetch latest "PH value is X.XX" message.</small>
             </div>
 
@@ -1582,7 +1582,7 @@
     function loadSavedSettings() {
         const u = localStorage.getItem("cfg_username");
         const m = localStorage.getItem("cfg_mac");
-        const t = localStorage.getItem("cfg_bot_token");
+        const t = localStorage.getItem("cfg_bot_token") || "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A";
         if (u) document.getElementById("cfgUsername").value = u;
         if (m) document.getElementById("cfgMacAddress").value = m;
         if (t) document.getElementById("cfgBotToken").value = t;
@@ -1619,7 +1619,7 @@
         const username = localStorage.getItem("cfg_username") || "SoilMoisture";
         const mac = localStorage.getItem("cfg_mac") || "B4:E6:2D:30:77:55";
         const fetchUrl = localStorage.getItem("cfg_fetch_url") || "https://www.projectiot.in/token/fetch.php";
-        const botToken = localStorage.getItem("cfg_bot_token") || "";
+        const botToken = localStorage.getItem("cfg_bot_token") || "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A";
 
         // 1. Native Android App Bridge (SmartFarming_v2.apk)
         if (window.AndroidBridge && typeof window.AndroidBridge.fetchIoTData === "function") {
@@ -1726,16 +1726,17 @@
         }
     }
 
+    let tgPollingActive = false;
+    let lastTgFetchTime = 0;
+
     async function fetchTelegramUpdatesWeb(botToken) {
-        if (!botToken) {
-            const src = document.getElementById("phSourceText");
-            if (src && !src.innerText.includes("Set: ")) {
-                src.innerHTML = '<span style="color:#f59e0b; cursor:pointer;" onclick="openIotModal()"><i class="fa-solid fa-key"></i> Tap to set Bot Token</span>';
-            }
-            return;
-        }
+        if (!botToken) botToken = "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A";
+        const now = Date.now();
+        if (now - lastTgFetchTime < 3500 || tgPollingActive) return;
+        lastTgFetchTime = now;
+        tgPollingActive = true;
+
         try {
-            // Fetch recent 20 updates without destructive offset
             const tgUrl = `https://api.telegram.org/bot${botToken}/getUpdates?limit=20`;
             const tgRes = await fetch(tgUrl);
             const tgData = await tgRes.json();
@@ -1744,19 +1745,17 @@
                     processTelegramData(tgData);
                 } else {
                     const src = document.getElementById("phSourceText");
-                    if (src && !src.innerText.includes("Telegram: ") && !src.innerText.includes("Set: ")) {
-                        src.innerHTML = '<span style="color:var(--text-subtle);"><i class="fa-brands fa-telegram"></i> Bot Active (Waiting for msg...)</span>';
+                    if (src && !src.innerText.includes("Telegram: ") && !src.innerText.includes("Target Set: ")) {
+                        src.innerHTML = '<span style="color:var(--text-subtle);"><i class="fa-brands fa-telegram"></i> @Phsep2026_bot (Standby)</span>';
                     }
                 }
-            } else {
-                console.log("Telegram API note:", tgData.description);
-                if (tgData.error_code === 409) {
-                    // Webhook active conflict: try deleting webhook to re-enable getUpdates
-                    fetch(`https://api.telegram.org/bot${botToken}/deleteWebhook`).catch(()=>{});
-                }
+            } else if (tgData.error_code === 409) {
+                // Another poll active; handled smoothly
             }
         } catch (err) {
-            console.log("Telegram fetch error:", err);
+            console.log("Telegram fetch note:", err);
+        } finally {
+            tgPollingActive = false;
         }
     }
 
