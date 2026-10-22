@@ -1188,7 +1188,7 @@
                     <div>
                         <div class="telemetry-title">Soil pH (मृदा पीएच)</div>
                         <div class="telemetry-value">
-                            <span id="phValDisplay">5.70</span>
+                            <span id="phValDisplay">5.90</span>
                             <span class="telemetry-unit">pH</span>
                         </div>
                     </div>
@@ -1202,7 +1202,7 @@
                     </span>
                 </div>
                 <div class="telemetry-footer">
-                    <span id="phSourceText">Source: Telegram Bot</span>
+                    <span id="phSourceText"><i class="fa-brands fa-telegram" style="color:#0284c7;"></i> Telegram (@Phsep2026_bot): Live</span>
                     <span>ESP8266 #2 Hotspot</span>
                 </div>
             </div>
@@ -1542,7 +1542,7 @@
         moisture: 45,
         pump: "OFF",
         lamp: "OFF",
-        ph: 5.40,
+        ph: 5.90,
         lastUpdated: "Just Now",
         source: "Model Hotspot Node"
     };
@@ -1609,70 +1609,85 @@
     function closeIotModal() { document.getElementById("iotModal").classList.remove("active"); }
 
     // ---------------- Telemetry Ingestion (Node 1 & Telegram Node 2) ----------------
+    let tgPollingActive = false;
+    let lastTgFetchTime = 0;
+    let tgPollInterval = null;
+
     function startTelemetryPolling() {
-        pollAllTelemetry();
+        pollNode1Telemetry();
+        pollTelegramPh();
+
         if (telemetryPollInterval) clearInterval(telemetryPollInterval);
-        telemetryPollInterval = setInterval(pollAllTelemetry, 3500); // 3.5s automatic background poll
+        telemetryPollInterval = setInterval(pollNode1Telemetry, 3500); // 3.5s NodeMCU ESP8266 check
+
+        if (tgPollInterval) clearInterval(tgPollInterval);
+        tgPollInterval = setInterval(pollTelegramPh, 2000); // 2s fast Telegram Bot auto-sync
     }
 
-    async function pollAllTelemetry() {
+    async function pollNode1Telemetry() {
         const username = localStorage.getItem("cfg_username") || "SoilMoisture";
         const mac = localStorage.getItem("cfg_mac") || "B4:E6:2D:30:77:55";
         const fetchUrl = localStorage.getItem("cfg_fetch_url") || "https://www.projectiot.in/token/fetch.php";
-        const botToken = localStorage.getItem("cfg_bot_token") || "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A";
 
         // 1. Native Android App Bridge (SmartFarming_v2.apk)
         if (window.AndroidBridge && typeof window.AndroidBridge.fetchIoTData === "function") {
             try {
                 window.AndroidBridge.fetchIoTData(username, mac);
-                if (botToken) {
-                    window.AndroidBridge.fetchTelegramUpdates(botToken);
-                }
                 return;
-            } catch(bridgeErr) {
-                console.log("Native Android bridge note:", bridgeErr);
-            }
+            } catch(e) {}
         }
 
         // 2. Python Backend Proxy (When running app.py locally)
-        let handled = false;
         try {
             const localRes = await fetch(`/api/telemetry?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`);
             if (localRes.ok) {
                 const localData = await localRes.json();
                 if (localData && localData.success && localData.raw) {
                     processRawTelemetry(localData.raw);
-                    handled = true;
+                    return;
                 }
             }
         } catch(e) {}
 
-        // 3. Web Auto-Sync (GitHub Pages: calls high-speed CORS bridge with Access-Control-Allow-Origin: *)
-        if (!handled) {
-            const rawUrl = `${fetchUrl}?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`;
-            try {
-                const proxyUrl = `https://cors-get-proxy.sirjosh.workers.dev/?url=${encodeURIComponent(rawUrl)}`;
-                const response = await fetch(proxyUrl, { cache: "no-store" });
-                if (response.ok) {
-                    const text = await response.text();
-                    processRawTelemetry(text);
-                    handled = true;
-                }
-            } catch (proxyErr) {
-                try {
-                    const directRes = await fetch(rawUrl, { cache: "no-store" });
-                    if (directRes.ok) {
-                        const directText = await directRes.text();
-                        processRawTelemetry(directText);
-                        handled = true;
-                    }
-                } catch(directErr) {}
+        // 3. Web direct attempt
+        const rawUrl = `${fetchUrl}?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`;
+        try {
+            const directRes = await fetch(rawUrl, { cache: "no-store" });
+            if (directRes.ok) {
+                const directText = await directRes.text();
+                processRawTelemetry(directText);
             }
+        } catch(e) {}
+    }
+
+    async function pollTelegramPh() {
+        const botToken = localStorage.getItem("cfg_bot_token") || "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A";
+        if (!botToken) return;
+
+        // 1. Trigger Native Android Bridge if inside APK
+        if (window.AndroidBridge && typeof window.AndroidBridge.fetchTelegramUpdates === "function") {
+            try {
+                window.AndroidBridge.fetchTelegramUpdates(botToken);
+            } catch(e) {}
         }
 
-        // 4. Telegram Bot Fetch for Soil pH
-        if (botToken) {
-            fetchTelegramUpdatesWeb(botToken);
+        // 2. Direct Web API fetch with cache-busting
+        const now = Date.now();
+        if (now - lastTgFetchTime < 1800 || tgPollingActive) return;
+        lastTgFetchTime = now;
+        tgPollingActive = true;
+
+        try {
+            const tgUrl = `https://api.telegram.org/bot${botToken}/getUpdates?limit=20&_nocache=${now}`;
+            const tgRes = await fetch(tgUrl);
+            const tgData = await tgRes.json();
+            if (tgData && tgData.ok && Array.isArray(tgData.result) && tgData.result.length > 0) {
+                processTelegramData(tgData);
+            }
+        } catch (err) {
+            console.log("Telegram fetch note:", err);
+        } finally {
+            tgPollingActive = false;
         }
     }
 
@@ -1708,18 +1723,25 @@
             if (msgObj) {
                 const directText = msgObj.text || "";
                 const replyText = (msgObj.reply_to_message && msgObj.reply_to_message.text) ? msgObj.reply_to_message.text : "";
-                const combined = (directText + " " + replyText).trim();
+                const captionText = msgObj.caption || "";
+                const combined = (directText + " " + replyText + " " + captionText).trim();
 
-                const match = combined.match(/([0-9]+\.[0-9]+)/) || combined.match(/([0-9]{1,2})/);
+                const match = combined.match(/([0-9]+\.[0-9]+)/) || combined.match(/( [0-9]{1,2} )/);
                 if (match) {
                     const parsedPh = parseFloat(match[1]);
                     if (parsedPh >= 0 && parsedPh <= 14) {
                         telemetry.ph = parsedPh;
-                        const displayMsg = replyText ? replyText : directText;
+                        const displayMsg = replyText ? replyText : (directText ? directText : ("pH " + parsedPh.toFixed(2)));
                         const sourceElem = document.getElementById("phSourceText");
-                        if (sourceElem) sourceElem.innerText = "Telegram (@Phsep2026_bot): " + displayMsg;
+                        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        if (sourceElem) {
+                            sourceElem.innerHTML = '<i class="fa-brands fa-telegram" style="color:#0284c7;"></i> Telegram: ' + displayMsg + ' <span style="font-size:11px; opacity:0.85;">(' + timeStr + ')</span>';
+                        }
                         const slider = document.getElementById("phManualSlider");
                         if (slider) slider.value = parsedPh;
+                        const disp = document.getElementById("phValDisplay");
+                        if (disp) disp.innerText = parsedPh.toFixed(2);
+
                         updateTelemetryUI();
                         renderPhPrescription(parsedPh);
                         updateSmartAdvisories();
@@ -1728,39 +1750,6 @@
                     }
                 }
             }
-        }
-    }
-
-    let tgPollingActive = false;
-    let lastTgFetchTime = 0;
-
-    async function fetchTelegramUpdatesWeb(botToken) {
-        if (!botToken) botToken = "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A";
-        const now = Date.now();
-        if (now - lastTgFetchTime < 3500 || tgPollingActive) return;
-        lastTgFetchTime = now;
-        tgPollingActive = true;
-
-        try {
-            const tgUrl = `https://api.telegram.org/bot${botToken}/getUpdates?limit=20`;
-            const tgRes = await fetch(tgUrl);
-            const tgData = await tgRes.json();
-            if (tgData.ok) {
-                if (tgData.result && tgData.result.length > 0) {
-                    processTelegramData(tgData);
-                } else {
-                    const src = document.getElementById("phSourceText");
-                    if (src && !src.innerText.includes("Telegram: ") && !src.innerText.includes("Target Set: ")) {
-                        src.innerHTML = '<span style="color:var(--text-subtle);"><i class="fa-brands fa-telegram"></i> @Phsep2026_bot (Standby)</span>';
-                    }
-                }
-            } else if (tgData.error_code === 409) {
-                // Another poll active; handled smoothly
-            }
-        } catch (err) {
-            console.log("Telegram fetch note:", err);
-        } finally {
-            tgPollingActive = false;
         }
     }
 
@@ -2243,7 +2232,16 @@
 
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration note:', err));
+            navigator.serviceWorker.register('./sw.js?v=6').then(reg => {
+                reg.update();
+            }).catch(err => console.log('SW registration note:', err));
+        }
+        if ('caches' in window) {
+            caches.keys().then(keys => {
+                keys.forEach(k => {
+                    if (k !== 'agriweather-cache-v6') caches.delete(k);
+                });
+            });
         }
     }
 </script>

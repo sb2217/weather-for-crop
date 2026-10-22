@@ -1,7 +1,6 @@
-// AgriWeather PWA Service Worker
-const CACHE_NAME = 'agriweather-cache-v1';
+// AgriWeather PWA Service Worker v6 - Auto-Sync Live Telemetry
+const CACHE_NAME = 'agriweather-cache-v6';
 const ASSETS_TO_CACHE = [
-  './index.html',
   './manifest.json',
   './static/crop_weather_bg.jpg',
   './static/w_bg.png'
@@ -28,8 +27,18 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Network first, then cache fallback
+  const url = e.request.url;
+  // NEVER cache live hardware telemetry or Telegram API calls
+  if (url.includes('telegram.org') || url.includes('projectiot.in') || url.includes('open-meteo.com')) {
+    return;
+  }
+
+  // Network-first strategy for everything else
   e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
+    fetch(e.request)
+      .then((res) => {
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
