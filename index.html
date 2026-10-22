@@ -24,16 +24,29 @@
             --secondary: #f59e0b;
             --danger: #ef4444;
             --info: #0284c7;
-            --bg-page: #f8fafc;
-            --surface: #ffffff;
-            --surface-card: #ffffff;
-            --surface-border: #e2e8f0;
-            --surface-hover: #f1f5f9;
+            --bg-page: #0f172a;
+            --surface: rgba(255, 255, 255, 0.94);
+            --surface-card: rgba(255, 255, 255, 0.90);
+            --surface-border: rgba(255, 255, 255, 0.55);
+            --surface-hover: #f8fafc;
             --text-main: #0f172a;
-            --text-muted: #475569;
+            --text-muted: #334155;
             --text-subtle: #64748b;
-            --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-            --hover-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+            --card-shadow: 0 12px 38px rgba(0, 0, 0, 0.28);
+            --hover-shadow: 0 16px 42px rgba(0, 0, 0, 0.35);
+        }
+
+        body.dark-theme {
+            --bg-page: #070a12;
+            --surface: rgba(17, 24, 39, 0.92);
+            --surface-card: rgba(26, 36, 56, 0.88);
+            --surface-border: rgba(255, 255, 255, 0.12);
+            --surface-hover: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --text-subtle: #94a3b8;
+            --card-shadow: 0 12px 38px rgba(0, 0, 0, 0.6);
+            --hover-shadow: 0 16px 42px rgba(0, 0, 0, 0.8);
         }
 
         body.dark-theme {
@@ -59,12 +72,30 @@
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             color: var(--text-main);
             min-height: 100vh;
-            background-color: var(--bg-page);
-            background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
-                              radial-gradient(at 100% 0%, rgba(2, 132, 199, 0.06) 0px, transparent 50%);
-            background-attachment: fixed;
+            background: #0f172a url('./static/crop_weather_bg.jpg') no-repeat center center fixed;
+            background-size: cover;
             position: relative;
             -webkit-font-smoothing: antialiased;
+        }
+
+        /* Glassmorphism Dark Tint Overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.72) 0%, rgba(6, 78, 59, 0.65) 100%);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 16px 80px 16px;
         }
 
         .app-container {
@@ -207,7 +238,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: var(--text-main);
+            color: #ffffff !important;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.9);
         }
 
         .section-title i {
@@ -225,7 +257,8 @@
         .section-subtitle {
             font-size: 12px;
             font-weight: 600;
-            color: var(--text-muted);
+            color: #e2e8f0 !important;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
         }
 
         .badge-auto-sync {
@@ -389,13 +422,19 @@
 
         /* ---------------- SECTION: IoT Live Telemetry Grid (APK replacement) ---------------- */
         .iot-panel {
-            background: var(--surface);
-            backdrop-filter: blur(var(--blur));
-            border: 1px solid var(--surface-border);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: var(--glass-shadow);
-            margin-bottom: 28px;
+            background: rgba(255, 255, 255, 0.93);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 12px 38px rgba(0, 0, 0, 0.28);
+            margin-bottom: 24px;
+        }
+
+        body.dark-theme .iot-panel {
+            background: rgba(17, 24, 39, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .iot-header {
@@ -1688,13 +1727,36 @@
     }
 
     async function fetchTelegramUpdatesWeb(botToken) {
+        if (!botToken) {
+            const src = document.getElementById("phSourceText");
+            if (src && !src.innerText.includes("Set: ")) {
+                src.innerHTML = '<span style="color:#f59e0b; cursor:pointer;" onclick="openIotModal()"><i class="fa-solid fa-key"></i> Tap to set Bot Token</span>';
+            }
+            return;
+        }
         try {
-            const tgUrl = `https://api.telegram.org/bot${botToken}/getUpdates?offset=-1`;
+            // Fetch recent 20 updates without destructive offset
+            const tgUrl = `https://api.telegram.org/bot${botToken}/getUpdates?limit=20`;
             const tgRes = await fetch(tgUrl);
             const tgData = await tgRes.json();
-            processTelegramData(tgData);
+            if (tgData.ok) {
+                if (tgData.result && tgData.result.length > 0) {
+                    processTelegramData(tgData);
+                } else {
+                    const src = document.getElementById("phSourceText");
+                    if (src && !src.innerText.includes("Telegram: ") && !src.innerText.includes("Set: ")) {
+                        src.innerHTML = '<span style="color:var(--text-subtle);"><i class="fa-brands fa-telegram"></i> Bot Active (Waiting for msg...)</span>';
+                    }
+                }
+            } else {
+                console.log("Telegram API note:", tgData.description);
+                if (tgData.error_code === 409) {
+                    // Webhook active conflict: try deleting webhook to re-enable getUpdates
+                    fetch(`https://api.telegram.org/bot${botToken}/deleteWebhook`).catch(()=>{});
+                }
+            }
         } catch (err) {
-            console.log("Telegram fetch note:", err);
+            console.log("Telegram fetch error:", err);
         }
     }
 
