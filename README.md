@@ -10,6 +10,10 @@
 
 ---
 
+## 📱 Download Native Android APK
+For 100% live hardware synchronization on your Android phone with **zero browser CORS restrictions**:
+👉 **[Download SmartFarming_v2.apk](https://github.com/sb2217/weather-for-crop/raw/main/SmartFarming_v2.apk)**
+
 ## 🚀 Live Demo on GitHub Pages
 Visit the live application directly in any smartphone or desktop browser:  
 👉 **[https://sb2217.github.io/weather-for-crop/](https://sb2217.github.io/weather-for-crop/)**
