@@ -47,6 +47,18 @@ def home():
         current_moisture=current_moisture
     )
 
+@app.route("/api/telemetry")
+def api_telemetry():
+    import requests
+    username = request.args.get("name", "SoilMoisture")
+    mac = request.args.get("mac", "B4:E6:2D:30:77:55")
+    url = f"https://www.projectiot.in/token/fetch.php?name={username}&mac={mac}"
+    try:
+        r = requests.get(url, timeout=5, headers={"User-Agent": "SmartFarmingLocalBackend/2.0"})
+        return jsonify({"success": True, "raw": r.text.strip(), "status_code": r.status_code})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/api/weather")
 def api_weather():
     city = request.args.get("city", "Delhi")

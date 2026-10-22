@@ -984,6 +984,12 @@
                 <span id="themeText">Dark Mode</span>
             </button>
 
+            <!-- Download Android APK Button -->
+            <a href="./SmartFarming_v2.apk" download class="btn-toggle" style="background: linear-gradient(135deg, #16a34a, #15803d); color: white; text-decoration: none; font-weight: 700;" title="Download Native Android App for Phone (Zero CORS restrictions)">
+                <i class="fa-brands fa-android"></i>
+                <span>Download APK</span>
+            </a>
+
             <!-- Install PWA Button (Hidden by default unless installable) -->
             <button class="btn-toggle" id="pwaInstallBtn" style="display:none;" onclick="installPWA()" title="Install as Mobile App">
                 <i class="fa-solid fa-download"></i>
@@ -1166,8 +1172,14 @@
                     Adjust slider below to simulate or prescribe for any field soil test report:
                 </p>
             </div>
-            <div style="font-size: 14px; font-weight: 700; color: var(--primary);">
-                Current Target: <span id="rxCurrentPh">5.40</span> pH
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <div style="font-size: 14px; font-weight: 700; color: var(--primary);">
+                    Current Target: <span id="rxCurrentPh">5.40</span> pH
+                </div>
+                <button type="button" class="btn-toggle" onclick="speakSoilAdvisory()" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid #10b981; padding: 6px 12px; font-size: 13px;" title="Mirror DFPlayer Mini Voice Audio">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <span>Speak Advisory</span>
+                </button>
             </div>
         </div>
 
@@ -1182,6 +1194,16 @@
             </div>
             <div class="ph-spectrum-bar"></div>
             <input type="range" class="ph-slider" id="phManualSlider" min="3.0" max="10.0" step="0.1" value="5.4" oninput="onManualPhChange(this.value)">
+        </div>
+
+        <!-- Quick Soil pH Presets for Live Exhibition Demonstration -->
+        <div style="display: flex; gap: 8px; margin-top: 10px; margin-bottom: 6px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);"><i class="fa-solid fa-wand-magic-sparkles"></i> Quick Presets:</span>
+            <div class="preset-chip" onclick="setPresetPh(4.5)">🔴 Acidic (pH 4.5 - Lime)</div>
+            <div class="preset-chip" onclick="setPresetPh(5.4)">🟠 HW Live (pH 5.4)</div>
+            <div class="preset-chip" onclick="setPresetPh(6.8)">🟢 Ideal (pH 6.8 - Balanced)</div>
+            <div class="preset-chip" onclick="setPresetPh(8.2)">🟡 Alkaline (pH 8.2 - Gypsum)</div>
+            <div class="preset-chip" onclick="setPresetPh(9.5)">🟣 High Sodic (pH 9.5 - Sulfur)</div>
         </div>
 
         <!-- Dynamic Prescription Boxes -->
@@ -1534,7 +1556,7 @@
     function startTelemetryPolling() {
         pollAllTelemetry();
         if (telemetryPollInterval) clearInterval(telemetryPollInterval);
-        telemetryPollInterval = setInterval(pollAllTelemetry, 10000); // 10s poll
+        telemetryPollInterval = setInterval(pollAllTelemetry, 4000); // Poll every 4 seconds for snappy response
     }
 
     async function pollAllTelemetry() {
@@ -1545,55 +1567,167 @@
         const fetchUrl = localStorage.getItem("cfg_fetch_url") || "https://www.projectiot.in/token/fetch.php";
         const botToken = localStorage.getItem("cfg_bot_token") || "";
 
-        // 1. Fetch Node 1 (Soil Moisture, Pump, Lamp) from projectiot.in
+        // 1. Native Android App Bridge (SmartFarming_v2.apk)
+        if (window.AndroidBridge && typeof window.AndroidBridge.fetchIoTData === "function") {
+            try {
+                window.AndroidBridge.fetchIoTData(username, mac);
+                if (botToken) {
+                    window.AndroidBridge.fetchTelegramUpdates(botToken);
+                }
+                return;
+            } catch(bridgeErr) {
+                console.log("Native Android bridge call failed, falling back to web fetch:", bridgeErr);
+            }
+        }
+
+        // 2. Python Backend Proxy (/api/telemetry when running app.py)
+        let handledByLocalBackend = false;
         try {
-            const url = `${fetchUrl}?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`;
-            let response = null;
+            const localRes = await fetch(`/api/telemetry?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`);
+            if (localRes.ok) {
+                const localData = await localRes.json();
+                if (localData && localData.success && localData.raw) {
+                    processRawTelemetry(localData.raw);
+                    handledByLocalBackend = true;
+                }
+            }
+        } catch(e) {
+            // Not running under Python Flask backend, proceed to direct / web fetch
+        }
+
+        // 3. Direct Fetch Fallback (subject to browser CORS on static hosts)
+        if (!handledByLocalBackend) {
             try {
-                response = await fetch(url, { cache: "no-store" });
+                const url = `${fetchUrl}?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`;
+                const response = await fetch(url, { cache: "no-store" });
+                if (response.ok) {
+                    const text = await response.text();
+                    processRawTelemetry(text);
+                }
             } catch (corsErr) {
-                // Fallback via CORS bridge for GitHub Pages client-side static hosting
-                response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-            }
-            if (response && response.ok) {
-                const text = await response.text();
-                if (text && text.trim() !== "false") {
-                    const parts = text.split(',');
-                    if (parts.length >= 4) {
-                        telemetry.lamp = parts[0].trim();
-                        telemetry.moisture = parseFloat(parts[1]) || 0;
-                        telemetry.pump = parts[2].trim();
-                        telemetry.lastUpdated = parts[3].trim();
-                    }
+                // Browser CORS restricted (expected on static GitHub Pages)
+                const lastUp = document.getElementById("iotLastUpdated");
+                if (lastUp && !lastUp.innerText.includes("Live Synced")) {
+                    lastUp.innerHTML = '<span style="color:#f59e0b;"><i class="fa-solid fa-triangle-exclamation"></i> Browser CORS Mode — For 100% Live Hardware Sync, install <b>SmartFarming_v2.apk</b> or run <code>python app.py</code></span>';
                 }
             }
-        } catch (e) {
-            console.log("Direct IoT fetch note (retaining latest state):", e);
         }
 
-        // 2. Fetch Node 2 (Soil pH) from Telegram Bot API
+        // 4. Telegram Bot Fetch for Web
         if (botToken) {
-            try {
-                const tgUrl = `https://api.telegram.org/bot${botToken}/getUpdates?offset=-1`;
-                const tgRes = await fetch(tgUrl);
-                const tgData = await tgRes.json();
-                if (tgData.ok && tgData.result.length > 0) {
-                    const latestMsg = tgData.result[0].message.text;
-                    const match = latestMsg.match(/([0-9]+\.[0-9]+)/);
-                    if (match) {
-                        telemetry.ph = parseFloat(match[1]);
-                        document.getElementById("phSourceText").innerText = "Telegram: " + latestMsg;
+            fetchTelegramUpdatesWeb(botToken);
+        }
+    }
+
+    function processRawTelemetry(text) {
+        if (!text || text.trim() === "false") {
+            const lastUp = document.getElementById("iotLastUpdated");
+            if (lastUp) lastUp.innerText = "Hardware Standby (Waiting for ESP8266 ping...)";
+            return;
+        }
+        const parts = text.split(',');
+        if (parts.length >= 4) {
+            telemetry.lamp = parts[0].trim();
+            telemetry.moisture = parseFloat(parts[1]) || 0;
+            telemetry.pump = parts[2].trim();
+            telemetry.lastUpdated = parts[3].trim();
+            const lastUp = document.getElementById("iotLastUpdated");
+            if (lastUp) lastUp.innerText = "Live Synced: " + telemetry.lastUpdated;
+
+            updateTelemetryUI();
+            updateSmartAdvisories();
+            renderCropMatrix();
+        }
+    }
+
+    function processTelegramData(tgData) {
+        if (!tgData || !tgData.ok || !Array.isArray(tgData.result) || tgData.result.length === 0) {
+            return;
+        }
+        // Traverse updates backwards to pick the most recent message
+        for (let i = tgData.result.length - 1; i >= 0; i--) {
+            const item = tgData.result[i];
+            const msgObj = item.message || item.channel_post || item.edited_message;
+            if (msgObj && msgObj.text) {
+                const match = msgObj.text.match(/([0-9]+\.[0-9]+)/) || msgObj.text.match(/(\b[0-9]{1,2}\b)/);
+                if (match) {
+                    const parsedPh = parseFloat(match[1]);
+                    if (parsedPh >= 0 && parsedPh <= 14) {
+                        telemetry.ph = parsedPh;
+                        document.getElementById("phSourceText").innerText = "Telegram: " + msgObj.text;
+                        const slider = document.getElementById("phManualSlider");
+                        if (slider) slider.value = parsedPh;
+                        updateTelemetryUI();
+                        renderPhPrescription(parsedPh);
+                        updateSmartAdvisories();
+                        renderCropMatrix();
+                        break;
                     }
                 }
-            } catch (err) {
-                console.log("Telegram fetch note:", err);
             }
         }
+    }
 
+    async function fetchTelegramUpdatesWeb(botToken) {
+        try {
+            const tgUrl = `https://api.telegram.org/bot${botToken}/getUpdates?offset=-1`;
+            const tgRes = await fetch(tgUrl);
+            const tgData = await tgRes.json();
+            processTelegramData(tgData);
+        } catch (err) {
+            console.log("Telegram fetch note:", err);
+        }
+    }
+
+    // Native Android Bridge Callbacks
+    window.onNativeTelemetryResult = function(rawText) {
+        processRawTelemetry(rawText);
+    };
+
+    window.onNativeTelegramResult = function(rawJson) {
+        try {
+            const tgData = JSON.parse(rawJson);
+            processTelegramData(tgData);
+        } catch (e) {
+            console.log("Error parsing native telegram json:", e);
+        }
+    };
+
+    function setPresetPh(val) {
+        telemetry.ph = parseFloat(val);
+        const slider = document.getElementById("phManualSlider");
+        if (slider) slider.value = val;
+        document.getElementById("phSourceText").innerText = "Manual Preset Demonstration";
         updateTelemetryUI();
         renderPhPrescription(telemetry.ph);
         updateSmartAdvisories();
         renderCropMatrix();
+    }
+
+    function speakSoilAdvisory() {
+        if (!('speechSynthesis' in window)) {
+            alert("Text-to-speech is not supported on this device/browser.");
+            return;
+        }
+        window.speechSynthesis.cancel();
+        const ph = telemetry.ph || 5.4;
+        let speechText = "";
+        if (ph < 5.0) {
+            speechText = `Soil pH is ${ph.toFixed(1)}. Soil condition is strongly acidic. Recommended remedy: Apply 1200 kilograms of Agricultural Limestone per acre. Caution: severe phosphorus lockout.`;
+        } else if (ph < 6.0) {
+            speechText = `Soil pH is ${ph.toFixed(1)}. Soil is moderately acidic. Recommended remedy: Apply 700 kilograms of Agricultural Lime per acre. Suitable for potato and rice cultivation.`;
+        } else if (ph <= 7.5) {
+            speechText = `Soil pH is ${ph.toFixed(1)}. Soil condition is optimal and balanced. No chemical amendment needed. Ideal for wheat, mustard, and vegetables.`;
+        } else if (ph <= 8.5) {
+            speechText = `Soil pH is ${ph.toFixed(1)}. Soil is alkaline. Recommended remedy: Apply 800 kilograms of Agricultural Gypsum per acre to displace sodium.`;
+        } else {
+            speechText = `Soil pH is ${ph.toFixed(1)}. Soil is strongly alkaline sodic land. Recommended remedy: Apply Elemental Sulfur with heavy irrigation leaching.`;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(speechText);
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
     }
 
     function updateTelemetryUI() {
