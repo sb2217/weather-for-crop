@@ -1092,25 +1092,79 @@
     </section>
 
     <!-- SECTION 1: IoT Live Telemetry Grid -->
+    <!-- SECTION 1: Interactive Soil & Farm Telemetry Lab -->
     <div class="section-header">
         <div class="section-title">
-            <i class="fa-solid fa-satellite-dish"></i>
-            <span>Live Farm Telemetry</span>
+            <i class="fa-solid fa-seedling"></i>
+            <span>Soil Moisture & pH Interactive Laboratory</span>
         </div>
-        <span class="section-subtitle">NodeMCU ESP8266 & Sensors (projectiot.in + Telegram)</span>
+        <span class="section-subtitle">Direct Manual Input & Real-Time Farm Reaction Simulator</span>
     </div>
 
     <section class="iot-panel">
         <div class="iot-header">
             <div class="iot-header-info">
                 <h3>
-                    <i class="fa-solid fa-microchip" style="color: var(--primary);"></i>
-                    Real-Time Sensor Feed
+                    <i class="fa-solid fa-sliders" style="color: var(--primary);"></i>
+                    Manual Soil Parameter Lab & Live Display
                 </h3>
-                <p id="iotLastUpdated">Auto-syncing hardware feed...</p>
+                <p id="iotLastUpdated" style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+                    Type custom moisture or pH values below, or drag sliders to see immediate crop and relay reactions.
+                </p>
             </div>
             <div class="iot-status-badge">
-                <span class="badge-auto-sync"><i class="fa-solid fa-arrows-rotate fa-spin" style="--fa-animation-duration: 3.5s;"></i> Auto-Sync Active</span>
+                <span class="badge-auto-sync" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid #10b981; font-weight: 700;">
+                    <i class="fa-solid fa-flask"></i> Interactive Mode Active
+                </span>
+            </div>
+        </div>
+
+        <!-- Interactive Direct Parameter Controls -->
+        <div class="manual-controls-card" style="background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: 16px; padding: 18px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <!-- Control 1: Soil Moisture -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-size: 14px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-droplet" style="color: #0284c7;"></i>
+                            Enter Soil Moisture Level:
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <input type="number" id="manualMoistInput" min="0" max="100" value="45" oninput="onManualMoistChange(this.value)"
+                                   style="width: 70px; padding: 6px 10px; font-size: 15px; font-weight: 800; text-align: center; border-radius: 10px; border: 2px solid var(--primary); background: var(--surface); color: var(--text-main);">
+                            <span style="font-weight: 800; font-size: 15px; color: var(--primary);">%</span>
+                        </div>
+                    </div>
+                    <input type="range" class="ph-slider" id="moistSlider" min="0" max="100" step="1" value="45" oninput="onManualMoistChange(this.value)" style="margin-bottom: 10px; width: 100%;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                        <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Quick Presets:</span>
+                        <div class="preset-chip" onclick="onManualMoistChange(18)">🌵 Dry (18% - Pump ON)</div>
+                        <div class="preset-chip" onclick="onManualMoistChange(50)">🌾 Optimal (50% - Pump OFF)</div>
+                        <div class="preset-chip" onclick="onManualMoistChange(85)">💧 Wet (85% - Saturated)</div>
+                    </div>
+                </div>
+
+                <!-- Control 2: Soil pH -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-size: 14px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-flask-vial" style="color: #8b5cf6;"></i>
+                            Enter Soil pH Value:
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <input type="number" id="manualPhInput" min="3.0" max="10.0" step="0.1" value="6.2" oninput="onManualPhChange(this.value)"
+                                   style="width: 70px; padding: 6px 10px; font-size: 15px; font-weight: 800; text-align: center; border-radius: 10px; border: 2px solid #8b5cf6; background: var(--surface); color: var(--text-main);">
+                            <span style="font-weight: 800; font-size: 15px; color: #8b5cf6;">pH</span>
+                        </div>
+                    </div>
+                    <input type="range" class="ph-slider" id="phTopSlider" min="3.0" max="10.0" step="0.1" value="6.2" oninput="onManualPhChange(this.value)" style="margin-bottom: 10px; width: 100%;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                        <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Quick Presets:</span>
+                        <div class="preset-chip" onclick="onManualPhChange(4.8)">🔴 Acidic (4.8 - Lime)</div>
+                        <div class="preset-chip" onclick="onManualPhChange(6.5)">🟢 Balanced (6.5 - Ideal)</div>
+                        <div class="preset-chip" onclick="onManualPhChange(8.2)">🟡 Alkaline (8.2 - Gypsum)</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1132,9 +1186,9 @@
                 <div class="progress-bar-bg">
                     <div class="progress-bar-fill" id="moistBar" style="width: 45%;"></div>
                 </div>
-                <div class="telemetry-footer">
+                <div class="telemetry-footer" style="margin-top: 8px;">
                     <span id="moistStatusText" style="font-weight: 700; color: var(--primary);">Optimal Hydration</span>
-                    <span>Probe: Analog A0</span>
+                    <span>Analog Probe (A0)</span>
                 </div>
             </div>
 
@@ -1142,7 +1196,7 @@
             <div class="telemetry-card">
                 <div class="telemetry-top">
                     <div>
-                        <div class="telemetry-title">Water Pump (मोटर)</div>
+                        <div class="telemetry-title">Water Pump (मोटर / रिले)</div>
                         <div class="telemetry-value" id="pumpVal">OFF</div>
                     </div>
                     <div class="telemetry-icon icon-pump">
@@ -1154,9 +1208,11 @@
                         <i class="fa-solid fa-power-off"></i> Relay Inactive
                     </span>
                 </div>
-                <div class="telemetry-footer">
+                <div class="telemetry-footer" style="margin-top: 8px;">
                     <span>Auto-triggers when Soil &lt; 30%</span>
-                    <span>5V Relay Ch1</span>
+                    <button type="button" onclick="togglePumpManual()" class="preset-chip" style="font-size: 11px; padding: 2px 8px;">
+                        <i class="fa-solid fa-hand"></i> Toggle
+                    </button>
                 </div>
             </div>
 
@@ -1164,7 +1220,7 @@
             <div class="telemetry-card">
                 <div class="telemetry-top">
                     <div>
-                        <div class="telemetry-title">Farm Lamp (प्रकाश)</div>
+                        <div class="telemetry-title">Farm Lamp (प्रकाश / हीटिंग)</div>
                         <div class="telemetry-value" id="lampVal">OFF</div>
                     </div>
                     <div class="telemetry-icon icon-lamp">
@@ -1176,19 +1232,21 @@
                         <i class="fa-solid fa-moon"></i> Daytime Idle
                     </span>
                 </div>
-                <div class="telemetry-footer">
-                    <span>Triggers on LDR Darkness</span>
-                    <span>RL Module Ch2</span>
+                <div class="telemetry-footer" style="margin-top: 8px;">
+                    <span>LDR Darkness Controlled</span>
+                    <button type="button" onclick="toggleLampManual()" class="preset-chip" style="font-size: 11px; padding: 2px 8px;">
+                        <i class="fa-solid fa-hand"></i> Toggle
+                    </button>
                 </div>
             </div>
 
-            <!-- Live Soil pH Tile (Telegram Bot Bridge) -->
+            <!-- Live Soil pH Tile -->
             <div class="telemetry-card">
                 <div class="telemetry-top">
                     <div>
                         <div class="telemetry-title">Soil pH (मृदा पीएच)</div>
                         <div class="telemetry-value">
-                            <span id="phValDisplay">5.90</span>
+                            <span id="phValDisplay">6.20</span>
                             <span class="telemetry-unit">pH</span>
                         </div>
                     </div>
@@ -1197,13 +1255,13 @@
                     </div>
                 </div>
                 <div>
-                    <span class="telemetry-badge" id="phBadge" style="background:#fee2e2; color:#dc2626;">
-                        <i class="fa-solid fa-circle-exclamation"></i> Moderately Acidic
+                    <span class="telemetry-badge" id="phBadge" style="background:#dcfce7; color:#16a34a;">
+                        <i class="fa-solid fa-circle-check"></i> Balanced / Neutral
                     </span>
                 </div>
-                <div class="telemetry-footer">
-                    <span id="phSourceText"><i class="fa-brands fa-telegram" style="color:#0284c7;"></i> Telegram (@Phsep2026_bot): Live</span>
-                    <span>ESP8266 #2 Hotspot</span>
+                <div class="telemetry-footer" style="margin-top: 8px;">
+                    <span id="phSourceText"><i class="fa-solid fa-flask" style="color:#8b5cf6;"></i> Target: 6.20 pH</span>
+                    <span>Agronomic Engine</span>
                 </div>
             </div>
         </div>
@@ -1608,217 +1666,105 @@
     function openIotModal() { document.getElementById("iotModal").classList.add("active"); }
     function closeIotModal() { document.getElementById("iotModal").classList.remove("active"); }
 
-    // ---------------- Telemetry Ingestion (Node 1 & Telegram Node 2) ----------------
-    let tgPollingActive = false;
-    let lastTgFetchTime = 0;
-    let tgPollInterval = null;
-
+    // ---------------- Interactive Soil Parameter Lab & Telemetry Ingestion ----------------
     function startTelemetryPolling() {
-        pollNode1Telemetry();
-        pollTelegramPh();
-
-        if (telemetryPollInterval) clearInterval(telemetryPollInterval);
-        telemetryPollInterval = setInterval(pollNode1Telemetry, 3500); // 3.5s NodeMCU ESP8266 check
-
-        if (tgPollInterval) clearInterval(tgPollInterval);
-        tgPollInterval = setInterval(pollTelegramPh, 2000); // 2s fast Telegram Bot auto-sync
+        // Initialize UI with baseline parameters
+        onManualMoistChange(telemetry.moisture);
+        onManualPhChange(telemetry.ph);
     }
 
-    async function pollNode1Telemetry() {
-        const username = localStorage.getItem("cfg_username") || "SoilMoisture";
-        const mac = localStorage.getItem("cfg_mac") || "B4:E6:2D:30:77:55";
-        const fetchUrl = localStorage.getItem("cfg_fetch_url") || "https://www.projectiot.in/token/fetch.php";
+    function onManualMoistChange(val) {
+        let m = parseFloat(val);
+        if (isNaN(m)) m = 0;
+        m = Math.max(0, Math.min(100, m));
+        telemetry.moisture = m;
 
-        // 1. Native Android App Bridge (SmartFarming_v2.apk)
-        if (window.AndroidBridge && typeof window.AndroidBridge.fetchIoTData === "function") {
-            try {
-                window.AndroidBridge.fetchIoTData(username, mac);
-                return;
-            } catch(e) {}
-        }
+        // Automation logic: Pump switches ON when soil < 30%
+        telemetry.pump = (m < 30) ? "ON" : "OFF";
 
-        // 2. Python Backend Proxy (When running app.py locally)
-        try {
-            const localRes = await fetch(`/api/telemetry?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`);
-            if (localRes.ok) {
-                const localData = await localRes.json();
-                if (localData && localData.success && localData.raw) {
-                    processRawTelemetry(localData.raw);
-                    return;
-                }
-            }
-        } catch(e) {}
+        // Sync inputs
+        const inp = document.getElementById("manualMoistInput");
+        if (inp && document.activeElement !== inp) inp.value = Math.round(m);
+        const sld = document.getElementById("moistSlider");
+        if (sld && document.activeElement !== sld) sld.value = Math.round(m);
 
-        // 3. Web direct attempt
-        const rawUrl = `${fetchUrl}?name=${encodeURIComponent(username)}&mac=${encodeURIComponent(mac)}`;
-        try {
-            const directRes = await fetch(rawUrl, { cache: "no-store" });
-            if (directRes.ok) {
-                const directText = await directRes.text();
-                processRawTelemetry(directText);
-            }
-        } catch(e) {}
-    }
-
-    async function pollTelegramPh() {
-        const botToken = localStorage.getItem("cfg_bot_token") || "8764275901:AAFbCOGIOqnNyLkqLqdLMTp-vWJTt5bIx7A";
-        if (!botToken) return;
-
-        // 1. Trigger Native Android Bridge if inside APK
-        if (window.AndroidBridge && typeof window.AndroidBridge.fetchTelegramUpdates === "function") {
-            try {
-                window.AndroidBridge.fetchTelegramUpdates(botToken);
-            } catch(e) {}
-        }
-
-        // 2. Direct Web API fetch with cache-busting
-        const now = Date.now();
-        if (now - lastTgFetchTime < 1800 || tgPollingActive) return;
-        lastTgFetchTime = now;
-        tgPollingActive = true;
-
-        try {
-            const tgUrl = `https://api.telegram.org/bot${botToken}/getUpdates?limit=20&_nocache=${now}`;
-            const tgRes = await fetch(tgUrl);
-            const tgData = await tgRes.json();
-            if (tgData && tgData.ok && Array.isArray(tgData.result) && tgData.result.length > 0) {
-                processTelegramData(tgData);
-            }
-        } catch (err) {
-            console.log("Telegram fetch note:", err);
-        } finally {
-            tgPollingActive = false;
-        }
-    }
-
-    function processRawTelemetry(text) {
-        if (!text) return;
-        const trimmed = text.trim();
         const lastUp = document.getElementById("iotLastUpdated");
-        if (trimmed === "false") {
-            if (lastUp) lastUp.innerHTML = '<span style="color:var(--text-subtle);"><i class="fa-solid fa-satellite"></i> Standby (Waiting for ESP8266 ping...)</span>';
-            return;
+        if (lastUp) {
+            lastUp.innerHTML = `<span style="color:var(--primary); font-weight:700;"><i class="fa-solid fa-sliders"></i> Soil Moisture calibrated to ${Math.round(m)}% (Pump ${telemetry.pump})</span>`;
         }
-        const parts = trimmed.split(',');
-        if (parts.length >= 4) {
-            telemetry.lamp = parts[0].trim();
-            telemetry.moisture = parseFloat(parts[1]) || 0;
-            telemetry.pump = parts[2].trim();
-            telemetry.lastUpdated = parts[3].trim();
-            if (lastUp) lastUp.innerHTML = '<span style="color:var(--primary); font-weight:600;"><i class="fa-solid fa-circle-check"></i> Live Synced: ' + telemetry.lastUpdated + '</span>';
 
-            updateTelemetryUI();
-            updateSmartAdvisories();
-            renderCropMatrix();
-        }
-    }
-
-    function processTelegramData(tgData) {
-        if (!tgData || !tgData.ok || !Array.isArray(tgData.result) || tgData.result.length === 0) {
-            return;
-        }
-        for (let i = tgData.result.length - 1; i >= 0; i--) {
-            const item = tgData.result[i];
-            const msgObj = item.message || item.channel_post || item.edited_message;
-            if (msgObj) {
-                const directText = msgObj.text || "";
-                const replyText = (msgObj.reply_to_message && msgObj.reply_to_message.text) ? msgObj.reply_to_message.text : "";
-                const captionText = msgObj.caption || "";
-                const combined = (directText + " " + replyText + " " + captionText).trim();
-
-                const match = combined.match(/([0-9]+\.[0-9]+)/) || combined.match(/( [0-9]{1,2} )/);
-                if (match) {
-                    const parsedPh = parseFloat(match[1]);
-                    if (parsedPh >= 0 && parsedPh <= 14) {
-                        telemetry.ph = parsedPh;
-                        const displayMsg = replyText ? replyText : (directText ? directText : ("pH " + parsedPh.toFixed(2)));
-                        const sourceElem = document.getElementById("phSourceText");
-                        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        if (sourceElem) {
-                            sourceElem.innerHTML = '<i class="fa-brands fa-telegram" style="color:#0284c7;"></i> Telegram: ' + displayMsg + ' <span style="font-size:11px; opacity:0.85;">(' + timeStr + ')</span>';
-                        }
-                        const slider = document.getElementById("phManualSlider");
-                        if (slider) slider.value = parsedPh;
-                        const disp = document.getElementById("phValDisplay");
-                        if (disp) disp.innerText = parsedPh.toFixed(2);
-
-                        updateTelemetryUI();
-                        renderPhPrescription(parsedPh);
-                        updateSmartAdvisories();
-                        renderCropMatrix();
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    // Native Android Bridge Callbacks
-    window.onNativeTelemetryResult = function(rawText) {
-        processRawTelemetry(rawText);
-    };
-
-    window.onNativeTelegramResult = function(rawJson) {
-        try {
-            const tgData = JSON.parse(rawJson);
-            processTelegramData(tgData);
-        } catch (e) {
-            console.log("Error parsing native telegram json:", e);
-        }
-    };
-
-    function setPresetPh(val) {
-        telemetry.ph = parseFloat(val);
-        const slider = document.getElementById("phManualSlider");
-        if (slider) slider.value = val;
-        const sourceElem = document.getElementById("phSourceText");
-        if (sourceElem) sourceElem.innerText = "Target Set: " + val + " pH";
         updateTelemetryUI();
-        renderPhPrescription(telemetry.ph);
         updateSmartAdvisories();
         renderCropMatrix();
     }
 
-    function speakSoilAdvisory() {
-        if (!('speechSynthesis' in window)) {
-            alert("Text-to-speech is not supported on this browser.");
-            return;
-        }
-        window.speechSynthesis.cancel();
-        const ph = telemetry.ph || 5.4;
-        let speechText = "";
-        if (ph < 5.0) {
-            speechText = `Soil pH is ${ph.toFixed(1)}. Soil condition is strongly acidic. Recommended remedy: Apply 1200 kilograms of Agricultural Limestone per acre. Caution: severe phosphorus lockout.`;
-        } else if (ph < 6.0) {
-            speechText = `Soil pH is ${ph.toFixed(1)}. Soil is moderately acidic. Recommended remedy: Apply 700 kilograms of Agricultural Lime per acre. Suitable for potato and rice cultivation.`;
-        } else if (ph <= 7.5) {
-            speechText = `Soil pH is ${ph.toFixed(1)}. Soil condition is optimal and balanced. No chemical amendment needed. Ideal for wheat, mustard, and vegetables.`;
-        } else if (ph <= 8.5) {
-            speechText = `Soil pH is ${ph.toFixed(1)}. Soil is alkaline. Recommended remedy: Apply 800 kilograms of Agricultural Gypsum per acre to displace sodium.`;
-        } else {
-            speechText = `Soil pH is ${ph.toFixed(1)}. Soil is strongly alkaline sodic land. Recommended remedy: Apply Elemental Sulfur with heavy irrigation leaching.`;
+    function onManualPhChange(val) {
+        let ph = parseFloat(val);
+        if (isNaN(ph)) ph = 7.0;
+        ph = Math.max(0, Math.min(14, ph));
+        telemetry.ph = ph;
+
+        // Sync inputs and sliders
+        const pInp = document.getElementById("manualPhInput");
+        if (pInp && document.activeElement !== pInp) pInp.value = ph.toFixed(1);
+        const pTopSld = document.getElementById("phTopSlider");
+        if (pTopSld && document.activeElement !== pTopSld) pTopSld.value = ph;
+        const pSld = document.getElementById("phManualSlider");
+        if (pSld && document.activeElement !== pSld) pSld.value = ph;
+        const pRx = document.getElementById("rxCurrentPh");
+        if (pRx) pRx.innerText = ph.toFixed(2);
+        const pDisp = document.getElementById("phValDisplay");
+        if (pDisp) pDisp.innerText = ph.toFixed(2);
+
+        const sourceElem = document.getElementById("phSourceText");
+        if (sourceElem) {
+            sourceElem.innerHTML = `<i class="fa-solid fa-flask" style="color:#8b5cf6;"></i> Target: ${ph.toFixed(2)} pH`;
         }
 
-        const utterance = new SpeechSynthesisUtterance(speechText);
-        utterance.rate = 0.95;
-        utterance.pitch = 1.0;
-        window.speechSynthesis.speak(utterance);
+        const lastUp = document.getElementById("iotLastUpdated");
+        if (lastUp) {
+            lastUp.innerHTML = `<span style="color:#8b5cf6; font-weight:700;"><i class="fa-solid fa-sliders"></i> Soil pH calibrated to ${ph.toFixed(2)}</span>`;
+        }
+
+        updateTelemetryUI();
+        renderPhPrescription(ph);
+        updateSmartAdvisories();
+        renderCropMatrix();
+    }
+
+    function setPresetPh(val) {
+        onManualPhChange(val);
+    }
+
+    function togglePumpManual() {
+        telemetry.pump = (telemetry.pump === "ON") ? "OFF" : "ON";
+        updateTelemetryUI();
+    }
+
+    function toggleLampManual() {
+        telemetry.lamp = (telemetry.lamp === "ON") ? "OFF" : "ON";
+        updateTelemetryUI();
     }
 
     function updateTelemetryUI() {
         // Moisture
-        document.getElementById("moistVal").innerText = Math.round(telemetry.moisture);
-        document.getElementById("moistBar").style.width = Math.min(100, Math.max(0, telemetry.moisture)) + "%";
+        const m = Math.round(telemetry.moisture);
+        document.getElementById("moistVal").innerText = m;
+        document.getElementById("moistBar").style.width = Math.min(100, Math.max(0, m)) + "%";
         const moistStatus = document.getElementById("moistStatusText");
-        if (telemetry.moisture < 30) {
+        const moistBar = document.getElementById("moistBar");
+        if (m < 30) {
             moistStatus.innerText = "Dry (Needs Irrigation)";
             moistStatus.style.color = "#ef4444";
-        } else if (telemetry.moisture <= 75) {
+            moistBar.style.background = "#ef4444";
+        } else if (m <= 75) {
             moistStatus.innerText = "Optimal Hydration";
             moistStatus.style.color = "#10b981";
+            moistBar.style.background = "#10b981";
         } else {
             moistStatus.innerText = "Saturated / Wet";
             moistStatus.style.color = "#0284c7";
+            moistBar.style.background = "#0284c7";
         }
 
         // Pump
@@ -1844,12 +1790,13 @@
         }
 
         // pH
-        document.getElementById("phValDisplay").innerText = telemetry.ph.toFixed(2);
+        const ph = telemetry.ph;
+        document.getElementById("phValDisplay").innerText = ph.toFixed(2);
         const phBadge = document.getElementById("phBadge");
-        if (telemetry.ph < 6.0) {
+        if (ph < 6.0) {
             phBadge.style.background = "#fee2e2"; phBadge.style.color = "#dc2626";
             phBadge.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Acidic Soil';
-        } else if (telemetry.ph <= 7.5) {
+        } else if (ph <= 7.5) {
             phBadge.style.background = "#dcfce7"; phBadge.style.color = "#16a34a";
             phBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Balanced / Neutral';
         } else {
@@ -1858,17 +1805,35 @@
         }
     }
 
-    // ---------------- Soil pH Prescription Engine ----------------
-    function onManualPhChange(val) {
-        const ph = parseFloat(val);
-        telemetry.ph = ph;
-        document.getElementById("phValDisplay").innerText = ph.toFixed(2);
-        renderPhPrescription(ph);
-        renderCropMatrix();
+    function speakSoilAdvisory() {
+        if (!('speechSynthesis' in window)) {
+            alert("Text-to-speech is not supported on this browser.");
+            return;
+        }
+        window.speechSynthesis.cancel();
+        const ph = telemetry.ph || 6.2;
+        let speechText = "";
+        if (ph < 5.0) {
+            speechText = `Attention Farmer: Soil is strongly acidic at pH ${ph.toFixed(1)}. Apply Agricultural Lime at 300 grams per square meter four weeks before sowing. High risk of phosphorus lockout and aluminum toxicity.`;
+        } else if (ph < 6.0) {
+            speechText = `Attention Farmer: Soil is moderately acidic at pH ${ph.toFixed(1)}. Apply Dolomitic Limestone at 150 grams per square meter and incorporate hardwood ash to neutralize acidity.`;
+        } else if (ph <= 7.5) {
+            speechText = `Attention Farmer: Soil is in the optimal balanced range at pH ${ph.toFixed(1)}. No chemical neutralizers needed. Peak nitrogen, phosphorus, and potassium availability for maximum crop yield.`;
+        } else if (ph <= 8.5) {
+            speechText = `Attention Farmer: Soil is moderately alkaline at pH ${ph.toFixed(1)}. Apply Agricultural Gypsum at 200 grams per square meter to displace excess sodium and prevent micronutrient chlorosis.`;
+        } else {
+            speechText = `Attention Farmer: Soil is strongly sodic and saline at pH ${ph.toFixed(1)}. Apply elemental sulfur or iron pyrite and perform deep leaching with organic Sesbania green manure.`;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(speechText);
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
     }
 
     function renderPhPrescription(ph) {
-        document.getElementById("rxCurrentPh").innerText = ph.toFixed(2);
+        const rxCurrent = document.getElementById("rxCurrentPh");
+        if (rxCurrent) rxCurrent.innerText = ph.toFixed(2);
         const title = document.getElementById("rxCategoryTitle");
         const remedy = document.getElementById("rxRemedyTitle");
         const dosage = document.getElementById("rxDosageText");
@@ -2232,14 +2197,14 @@
 
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=6').then(reg => {
+            navigator.serviceWorker.register('./sw.js?v=7').then(reg => {
                 reg.update();
             }).catch(err => console.log('SW registration note:', err));
         }
         if ('caches' in window) {
             caches.keys().then(keys => {
                 keys.forEach(k => {
-                    if (k !== 'agriweather-cache-v6') caches.delete(k);
+                    if (k !== 'agriweather-cache-v7') caches.delete(k);
                 });
             });
         }

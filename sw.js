@@ -1,5 +1,5 @@
-// AgriWeather PWA Service Worker v6 - Auto-Sync Live Telemetry
-const CACHE_NAME = 'agriweather-cache-v6';
+// AgriWeather PWA Service Worker v7 - Interactive Manual Soil Lab
+const CACHE_NAME = 'agriweather-cache-v7';
 const ASSETS_TO_CACHE = [
   './manifest.json',
   './static/crop_weather_bg.jpg',
